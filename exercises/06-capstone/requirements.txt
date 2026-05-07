@@ -1,0 +1,25 @@
+# Capstone — pip-installable dependencies.
+#
+# Minimal install (numpy backend, runs everything except `--backend petsc`):
+#     python -m pip install -r requirements.txt
+#
+# Full install adds petsc4py for the PETSc/TAO backend. petsc4py is
+# easier via conda — see environment.yml or INSTALL.md.
+
+# --- Required (numpy backend) -----------------------------------------------
+numpy>=1.24,<3.0
+scipy>=1.10
+matplotlib>=3.7
+
+# --- Required for testing ---------------------------------------------------
+pytest>=7.4
+pytest-timeout>=2.2          # capstone tests use timeouts on slow markers
+
+# --- Optional: PETSc/TAO backend --------------------------------------------
+# Uncomment to install via pip. This BUILDS PETSc from source on first
+# install (10–30 min, needs a C compiler, BLAS, LAPACK, and MPI). On macOS
+# and Linux it usually just works; on Windows, use WSL2 or conda. If the
+# build fails, the conda path in environment.yml is the recommended fallback.
+#
+# petsc>=3.20
+# petsc4py>=3.20
