@@ -295,7 +295,7 @@
     <div class="kicker">Workshop · two hours</div>
     <h1>Files, not chats</h1>
     <p class="sub" style="font-size: 28px; color: var(--ink); margin-top: 8px; margin-bottom: 18px;">Claude Code as a co-scientist <span style="color: var(--muted); font-size: 22px;">— for mathematicians</span></p>
-    <p class="sub">A hands-on workshop for researchers in nonlinear, discrete, and PDE-constrained optimization. The four-file architecture (CLAUDE.md, plans/, MEMORY.md, STATUS.md), skills, MCP servers, version control, testing, and literature workflows — with runnable exercises in Python, Pyomo, CasADi, and PETSc/TAO.</p>
+    <p class="sub">A hands-on workshop for researchers in computational mathematics — numerical PDEs, optimization, etc. The four-file architecture (CLAUDE.md, plans/, MEMORY.md, STATUS.md), skills, MCP servers, version control, testing, and literature workflows — with runnable exercises.</p>
     <div class="footer">
       <span>Workshop · v1</span>
       <div class="progress"><div></div></div>
@@ -312,8 +312,7 @@
       <div class="col">
         <h4>You're in the right room if</h4>
         <ul>
-          <li>You write nonlinear or discrete optimization solvers, or apply them.</li>
-          <li>Your problems involve MINLP, complementarity constraints, or PDE constraints.</li>
+          <li>You write or apply numerical solvers.</li>
           <li>You're comfortable with Python and the command line.</li>
           <li>You want less yak-shaving (plot scripts, log parsing, refactors) and more research.</li>
         </ul>
@@ -442,8 +441,8 @@ claude</code></pre>
     <p class="lede">Everything Claude reads and writes during a session lives in one finite buffer called the <i>context window</i>.</p>
     <ul>
       <li>Every prompt you type, every file Claude reads, every tool output — all go into the same window.</li>
-      <li>The window is large but bounded (around 200K tokens, roughly 150K words).</li>
-      <li>When you approach the limit, Claude Code <b>auto-compacts</b> — older messages are summarized to make room.</li>
+      <li>The context window is large but bounded (around 200K tokens, roughly 150K words).</li>
+      <li style="color: #c0392b;">When you approach the limit, Claude Code <b>auto-compacts</b> — older messages are summarized to make room.</li>
       <li>After auto-compact, specific details from earlier turns can fade. Anything you want to keep should be on disk, not just in the conversation.</li>
     </ul>
     <div class="callout">Implication: long sessions are fine, but treat the conversation as ephemeral. Persistent facts go in CLAUDE.md, MEMORY.md, or files in the repo.</div>
@@ -463,7 +462,7 @@ claude</code></pre>
       <tr><td>The conversation itself</td><td>Only with <code>--resume</code></td><td>Compressed to a summary</td></tr>
       <tr><td>"Mental notes" Claude has in-conversation</td><td>No — they vanish</td><td>Often lost</td></tr>
     </table>
-    <p class="small" style="margin-top: 8px;">If a fact matters tomorrow, write it to MEMORY.md today. If it's a reusable procedure, lift it into a skill. The conversation is scratch paper.</p>
+    <p class="small" style="margin-top: 8px;">If a fact matters tomorrow, write it to MEMORY.md today. If it's a reusable procedure, lift it into a skill. <b>The conversation is scratch paper.</b></p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -481,7 +480,7 @@ claude --resume
 /clear      # wipe the conversation; keep CLAUDE.md, skills, files
 /compact    # manually summarize older turns to free context space</code></pre>
     <p>Sessions are stored locally under <code>~/.claude/projects/&lt;hash&gt;/</code>. They're plain files; you can grep them.</p>
-    <div class="callout">House rule: end every session with <code>summarize what we did and append a dated entry to MEMORY.md</code>. Two minutes; beats relying on <code>--resume</code> to remember decisions.</div>
+    <div class="callout"><b>House rule:</b> end every session with <code>summarize what we did and append a dated entry to MEMORY.md</code>. Two minutes; beats relying on <code>--resume</code> to remember decisions.</div>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -498,7 +497,7 @@ claude --resume
       <tr><td>Strong fit</td><td>Solver code, experiments, paper LaTeX</td><td>Grant admin, email triage, document pipelines</td></tr>
       <tr><td>Shared</td><td colspan="2">Same model family, plugins, skills, memory conventions</td></tr>
     </table>
-    <p class="small" style="margin-top: 6px;">For optimization research, Claude Code is the workhorse. Cowork is useful when the work crosses tools your terminal can't reach — drafting a referee reply that pulls from your Calendar, Gmail, and a Notion outline at once.</p>
+    <p class="small" style="margin-top: 6px;">For the kind of computational research this workshop covers, Claude Code is the workhorse. Cowork is useful when the work crosses tools your terminal can't reach — drafting a referee reply that pulls from your Calendar, Gmail, and a Notion outline at once.</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -570,18 +569,10 @@ Develop a primal-dual IPM with inertia correction for nonconvex NLPs.
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
-  <!-- 12. Exercise 1 -->
-  <section class="slide">
-    <h3>Exercise 1 <span class="badge">10 min</span></h3>
-    <h1>Write your own CLAUDE.md</h1>
-    <ol>
-      <li><code>cd exercises/01-claude-md/</code></li>
-      <li>Read the included <code>rosenbrock.py</code> — a deliberately under-tested SciPy solve.</li>
-      <li>Run <code>claude</code> and ask: <code>/init</code>. Read the generated CLAUDE.md.</li>
-      <li>Edit it. Add: project goal, your preferred tolerance, and one "don't" rule.</li>
-      <li>Then ask Claude: <code>add a convergence plot for rosenbrock.py using our conventions</code>.</li>
-    </ol>
-    <div class="callout">Discussion: did Claude follow your conventions? What did it miss? Add the missing rule to CLAUDE.md and try again — that's the whole loop.</div>
+  <!-- 12. Exercise 1 — pointer to supplemental deck -->
+  <section class="slide section-divider">
+    <h1>Exercise 1</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Please refer to your supplemental slide deck.</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
