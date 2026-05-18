@@ -1,4 +1,4 @@
-# Exercise 01-alt — install instructions
+# Exercise 01- PDE — install instructions
 
 This exercise runs inside a Docker container so you don't have to build Firedrake from source. **Install Docker first, then pull and run the official Firedrake Jupyter image with this folder bind-mounted in.** Total install time on a fresh machine: ~5–15 minutes (most of it is the image pull).
 
