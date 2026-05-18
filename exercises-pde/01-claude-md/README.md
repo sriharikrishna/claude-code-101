@@ -41,8 +41,8 @@
    - Mesh: built-in UnitSquareMesh; do not load any .msh or .geo file
 
    ## Commands
-   - `python laplace_square.py`               # one solve
-   - `python laplace_square.py --convergence` # writes figures/convergence.pdf
+   - `python3 laplace_square.py`               # one solve
+   - `python3 laplace_square.py --convergence` # writes figures/convergence.pdf
 
    ## Conventions
    - Convergence study: sweep n in (4, 8, 16, 32, 64); print a table with
