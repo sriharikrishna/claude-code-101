@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Numerical PDEs supplement — Claude Code workshop</title>
+<style>
+  :root {
+    --bg: #fbfaf6;
+    --ink: #1c1c1c;
+    --muted: #5b5b5b;
+    --accent: #b8410f;
+    --accent-soft: #e8d8c4;
+    --rule: #d6cfbf;
+    --code-bg: #f1ece1;
+    --code-ink: #1c1c1c;
+    --serif: "Iowan Old Style", "Palatino Linotype", "URW Palladio L", Palatino, Georgia, serif;
+    --sans: "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "JetBrains Mono", "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--serif); }
+  body { display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  #deck {
+    position: relative;
+    width: min(96vw, 1180px);
+    aspect-ratio: 16 / 10;
+    max-height: 92vh;
+    background: var(--bg);
+    box-shadow: 0 1px 0 var(--rule);
+    overflow: hidden;
+  }
+  .slide { position: absolute; inset: 0; padding: 56px 72px 72px; display: none; flex-direction: column; overflow: auto; }
+  .slide.active { display: flex; }
+  .slide h1 { font-family: var(--serif); font-weight: 600; font-size: 44px; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 8px; color: var(--ink); }
+  .slide h2 { font-family: var(--serif); font-weight: 600; font-size: 32px; line-height: 1.2; margin: 0 0 6px; }
+  .slide h3 { font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px; font-weight: 600; color: var(--accent); margin: 0 0 18px; }
+  .slide p, .slide li { font-size: 21px; line-height: 1.45; }
+  .slide ul, .slide ol { padding-left: 1.2em; margin: 0.4em 0 0.6em; }
+  .slide li { margin: 0.25em 0; }
+  .slide code { font-family: var(--mono); font-size: 0.92em; background: var(--code-bg); padding: 1px 6px; border-radius: 3px; }
+  .slide pre { font-family: var(--mono); background: var(--code-bg); color: var(--code-ink); padding: 16px 20px; border-radius: 4px; font-size: 15.5px; line-height: 1.45; overflow: auto; margin: 8px 0; border-left: 3px solid var(--accent); }
+  .slide pre code { background: transparent; padding: 0; font-size: inherit; }
+  .slide .lede { font-size: 24px; color: var(--muted); margin-top: 0; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 8px; }
+  .two-col .col h4 { font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; color: var(--muted); margin: 0 0 8px; }
+  .callout { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; margin: 12px 0; font-size: 18px; line-height: 1.45; }
+  .section-divider { background: var(--ink); color: var(--bg); }
+  .section-divider .kicker { font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.18em; font-size: 13px; color: var(--accent-soft); }
+  .section-divider h1 { color: var(--bg); font-size: 64px; }
+  .title-slide { justify-content: center; background: var(--bg); }
+  .title-slide .kicker { font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.18em; font-size: 13px; color: var(--accent); margin-bottom: 18px; }
+  .title-slide h1 { font-size: 64px; line-height: 1.05; max-width: 18ch; }
+  .title-slide .sub { font-size: 22px; color: var(--muted); margin-top: 18px; max-width: 56ch; }
+  .footer { position: absolute; bottom: 18px; left: 72px; right: 72px; display: flex; justify-content: space-between; align-items: baseline; font-family: var(--sans); font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; pointer-events: none; }
+  .footer .progress { flex: 1; height: 2px; background: var(--rule); margin: 0 18px; align-self: center; position: relative; }
+  .footer .progress > div { position: absolute; inset: 0 auto 0 0; background: var(--accent); width: 0%; transition: width 200ms ease; }
+  .nav { position: fixed; bottom: 14px; right: 18px; display: flex; gap: 6px; align-items: center; z-index: 10; }
+  .nav button { font-family: var(--sans); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 6px 10px; background: var(--bg); color: var(--ink); border: 1px solid var(--rule); cursor: pointer; }
+  .nav button:hover { background: var(--accent-soft); }
+  .badge { display: inline-block; font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.12em; font-size: 10px; color: var(--bg); background: var(--accent); padding: 2px 8px; border-radius: 2px; vertical-align: middle; margin-right: 8px; }
+  .small { font-size: 16px; color: var(--muted); }
+  table.matrix { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 17px; }
+  table.matrix th, table.matrix td { border: 1px solid var(--rule); padding: 8px 12px; text-align: left; vertical-align: top; }
+  table.matrix th { background: var(--code-bg); font-family: var(--sans); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+  @media (max-width: 800px) {
+    .slide { padding: 32px 28px 56px; }
+    .slide h1 { font-size: 32px; }
+    .slide h2 { font-size: 24px; }
+    .slide p, .slide li { font-size: 17px; }
+    .two-col { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="deck">
+
+  <!-- 1. Title -->
+  <section class="slide title-slide active">
+    <div class="kicker">Supplement · numerical PDEs</div>
+    <h1>Numerical PDEs supplement</h1>
+    <p class="sub" style="font-size: 28px; color: var(--ink); margin-top: 8px; margin-bottom: 18px;">Exercise walkthroughs for the FEM track</p>
+    <p class="sub">Companion to the main workshop deck. Slot in this supplement during the exercise blocks if your group is working in the FEM track. The main deck covers the concepts (CLAUDE.md, plans, MEMORY.md, skills, MCP); this supplement walks through the FEM-flavored variant of each exercise and supplies the framing the main deck deliberately leaves out.</p>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 2. SECTION: Exercise 1 -->
+  <section class="slide section-divider">
+    <div class="kicker">Exercise 1 · CLAUDE.md</div>
+    <h1>Write your first CLAUDE.md</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Your first contact with file-based collaboration. Encode your conventions for an FEM convergence study in a single markdown file, then watch the assistant respect them on the second try.</p>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 3. Why CLAUDE.md matters for FEM -->
+  <section class="slide">
+    <h3>Exercise 1 · framing</h3>
+    <h1>Why an FEM author needs CLAUDE.md</h1>
+    <p>Numerical PDE work is full of recurring micro-decisions — small, stable choices that shape every result and that you don't want to re-justify in every prompt. CLAUDE.md is where those live.</p>
+    <table class="matrix">
+      <tr><th>Decision</th><th>Why it belongs in CLAUDE.md</th></tr>
+      <tr><td>Mesh source and format</td><td>Pinned upstream by your geometry pipeline. Letting the assistant pick a different format mid-project breaks reproducibility.</td></tr>
+      <tr><td>Element family and polynomial order</td><td>One number with outsized effect on convergence rates. Easy to set wrong, easy to change silently.</td></tr>
+      <tr><td>Error norms reported (L², H¹, energy, …)</td><td>The norm you report defines what "convergence" means for your paper. A study that swaps norms between runs is not a study.</td></tr>
+      <tr><td>Figure conventions for convergence plots</td><td>Log-log axes, reference slope lines, file format, output directory. Three of these wrong and the figure is unusable in a paper.</td></tr>
+      <tr><td>Sanity-check values</td><td>Every PDE solver should report a small number (max of solution, energy, integral) you can eyeball against a known reference. Pin it once and forget.</td></tr>
+    </table>
+    <p class="small" style="margin-top: 8px;">CLAUDE.md is read at the start of every session. The assistant doesn't re-derive your conventions — it inherits them.</p>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 4. Exercise 1 walkthrough -->
+  <section class="slide">
+    <h3>Exercise 1 <span class="badge">10 min</span></h3>
+    <h1>Write your own CLAUDE.md</h1>
+    <ol>
+      <li>Open the exercise folder: <code>cd exercises-pde/01-claude-md/</code></li>
+      <li>Read <code>laplace_square.py</code> — a deliberately under-specified Firedrake solve on a coarse <code>UnitSquareMesh(8, 8)</code> with hardcoded P1 elements and no convergence study.</li>
+      <li>Run <code>claude</code> on the host. <b>First, with no CLAUDE.md</b>, ask: <code>add a convergence study for laplace_square.py</code>. Note what Claude picks for norms, axes, file paths, and element-order handling.</li>
+      <li>Now write a CLAUDE.md (use <code>/init</code> or copy the seed in <code>README.md</code>). Encode your conventions for: error norms (L² <i>and</i> H¹), table format, figure path and axes, reference slope lines, and how element order is exposed.</li>
+      <li><code>/clear</code> the conversation, re-ask the same prompt, compare.</li>
+    </ol>
+    <div class="callout">Discussion: which conventions did Claude follow on the second try? Which did it miss? Add the missing rule to CLAUDE.md and ask once more — that's the whole loop.</div>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 5. Exercise 1 — what to look for -->
+  <section class="slide">
+    <h3>Exercise 1 · debrief</h3>
+    <h1>What to look for in Claude's output</h1>
+    <p>The improvement that respects a well-written CLAUDE.md should look something like this. Use it as a checklist, not an answer key.</p>
+    <table class="matrix">
+      <tr><th>Convention you wrote</th><th>What it produces in the code</th></tr>
+      <tr><td>L² and H¹ errors with rates</td><td>A printed table with columns <code>n</code>, <code>dofs</code>, <code>L2</code>, <code>L2 rate</code>, <code>H1</code>, <code>H1 rate</code>. Rates computed as <code>log2(prev/curr)</code>.</td></tr>
+      <tr><td>Log-log convergence plot with reference slopes</td><td>Two data lines (L², H¹) and two dotted reference lines at <code>O(h^(p+1))</code> and <code>O(h^p)</code>, anchored at the coarsest data point.</td></tr>
+      <tr><td>Figures saved, never shown</td><td>No <code>plt.show()</code>; output goes to <code>figures/convergence.pdf</code>.</td></tr>
+      <tr><td>Element order configurable + first-run confirm</td><td>An <code>--order</code> flag (default 1); on each <code>--convergence</code> run, prompt to confirm the order, persisting the choice in <code>.element_order_confirmed</code>.</td></tr>
+      <tr><td>Sanity check on every solve</td><td>Report <code>max(u_h)</code> per level. The manufactured solution attains max = 1; values far from this signal trouble.</td></tr>
+    </table>
+    <p class="small" style="margin-top: 8px;">For P1 you should see L² rate → 2 and H¹ rate → 1 in the table, with the data lines parallel to the dotted reference lines on the plot.</p>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button id="prev" title="Previous (←)">‹</button>
+  <span class="nav-label">slide</span>
+  <input class="jump-to" id="jump" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="#">
+  <button id="next" title="Next (→ or Space)">›</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    document.querySelectorAll('.footer .progress > div').forEach(b => b.style.width = ((i + 1) / slides.length * 100) + '%');
+    document.querySelectorAll('.footer .counter').forEach(c => c.textContent = (i + 1) + ' / ' + slides.length);
+  }
+  document.getElementById('prev').onclick = () => show(i - 1);
+  document.getElementById('next').onclick = () => show(i + 1);
+  document.addEventListener('keydown', e => {
+    if (document.activeElement.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight' || e.key === ' ') { show(i + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { show(i - 1); e.preventDefault(); }
+  });
+  document.getElementById('jump').addEventListener('change', e => {
+    const n = parseInt(e.target.value, 10);
+    if (!isNaN(n)) show(n - 1);
+    e.target.value = '';
+  });
+  show(0);
+</script>
+</body>
+</html>

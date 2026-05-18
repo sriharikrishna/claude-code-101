@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Optimization supplement — Claude Code workshop</title>
+<style>
+  :root {
+    --bg: #fbfaf6;
+    --ink: #1c1c1c;
+    --muted: #5b5b5b;
+    --accent: #b8410f;
+    --accent-soft: #e8d8c4;
+    --rule: #d6cfbf;
+    --code-bg: #f1ece1;
+    --code-ink: #1c1c1c;
+    --serif: "Iowan Old Style", "Palatino Linotype", "URW Palladio L", Palatino, Georgia, serif;
+    --sans: "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "JetBrains Mono", "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--serif); }
+  body { display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  #deck {
+    position: relative;
+    width: min(96vw, 1180px);
+    aspect-ratio: 16 / 10;
+    max-height: 92vh;
+    background: var(--bg);
+    box-shadow: 0 1px 0 var(--rule);
+    overflow: hidden;
+  }
+  .slide { position: absolute; inset: 0; padding: 56px 72px 72px; display: none; flex-direction: column; overflow: auto; }
+  .slide.active { display: flex; }
+  .slide h1 { font-family: var(--serif); font-weight: 600; font-size: 44px; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 8px; color: var(--ink); }
+  .slide h2 { font-family: var(--serif); font-weight: 600; font-size: 32px; line-height: 1.2; margin: 0 0 6px; }
+  .slide h3 { font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px; font-weight: 600; color: var(--accent); margin: 0 0 18px; }
+  .slide p, .slide li { font-size: 21px; line-height: 1.45; }
+  .slide ul, .slide ol { padding-left: 1.2em; margin: 0.4em 0 0.6em; }
+  .slide li { margin: 0.25em 0; }
+  .slide code { font-family: var(--mono); font-size: 0.92em; background: var(--code-bg); padding: 1px 6px; border-radius: 3px; }
+  .slide pre { font-family: var(--mono); background: var(--code-bg); color: var(--code-ink); padding: 16px 20px; border-radius: 4px; font-size: 15.5px; line-height: 1.45; overflow: auto; margin: 8px 0; border-left: 3px solid var(--accent); }
+  .slide pre code { background: transparent; padding: 0; font-size: inherit; }
+  .slide .lede { font-size: 24px; color: var(--muted); margin-top: 0; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 8px; }
+  .two-col .col h4 { font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; color: var(--muted); margin: 0 0 8px; }
+  .callout { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; margin: 12px 0; font-size: 18px; line-height: 1.45; }
+  .section-divider { background: var(--ink); color: var(--bg); }
+  .section-divider .kicker { font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.18em; font-size: 13px; color: var(--accent-soft); }
+  .section-divider h1 { color: var(--bg); font-size: 64px; }
+  .title-slide { justify-content: center; background: var(--bg); }
+  .title-slide .kicker { font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.18em; font-size: 13px; color: var(--accent); margin-bottom: 18px; }
+  .title-slide h1 { font-size: 64px; line-height: 1.05; max-width: 18ch; }
+  .title-slide .sub { font-size: 22px; color: var(--muted); margin-top: 18px; max-width: 56ch; }
+  .footer { position: absolute; bottom: 18px; left: 72px; right: 72px; display: flex; justify-content: space-between; align-items: baseline; font-family: var(--sans); font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; pointer-events: none; }
+  .footer .progress { flex: 1; height: 2px; background: var(--rule); margin: 0 18px; align-self: center; position: relative; }
+  .footer .progress > div { position: absolute; inset: 0 auto 0 0; background: var(--accent); width: 0%; transition: width 200ms ease; }
+  .nav { position: fixed; bottom: 14px; right: 18px; display: flex; gap: 6px; align-items: center; z-index: 10; }
+  .nav button { font-family: var(--sans); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 6px 10px; background: var(--bg); color: var(--ink); border: 1px solid var(--rule); cursor: pointer; }
+  .nav button:hover { background: var(--accent-soft); }
+  .badge { display: inline-block; font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.12em; font-size: 10px; color: var(--bg); background: var(--accent); padding: 2px 8px; border-radius: 2px; vertical-align: middle; margin-right: 8px; }
+  .small { font-size: 16px; color: var(--muted); }
+  table.matrix { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 17px; }
+  table.matrix th, table.matrix td { border: 1px solid var(--rule); padding: 8px 12px; text-align: left; vertical-align: top; }
+  table.matrix th { background: var(--code-bg); font-family: var(--sans); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+  @media (max-width: 800px) {
+    .slide { padding: 32px 28px 56px; }
+    .slide h1 { font-size: 32px; }
+    .slide h2 { font-size: 24px; }
+    .slide p, .slide li { font-size: 17px; }
+    .two-col { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="deck">
+
+  <!-- 1. Title -->
+  <section class="slide title-slide active">
+    <div class="kicker">Supplement · optimization</div>
+    <h1>Optimization supplement</h1>
+    <p class="sub" style="font-size: 28px; color: var(--ink); margin-top: 8px; margin-bottom: 18px;">Exercise walkthroughs for the optimization track</p>
+    <p class="sub">Companion to the main workshop deck. Slot in this supplement during the exercise blocks if your group is working in the optimization track. The main deck covers the concepts (CLAUDE.md, plans, MEMORY.md, skills, MCP); this supplement walks through the optimization-flavored variant of each exercise and supplies the framing the main deck deliberately leaves out.</p>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 2. SECTION: Exercise 1 -->
+  <section class="slide section-divider">
+    <div class="kicker">Exercise 1 · CLAUDE.md</div>
+    <h1>Write your first CLAUDE.md</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Your first contact with file-based collaboration. Encode your conventions for a small SciPy optimization in a single markdown file, then watch the assistant respect them on the second try.</p>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 3. Why CLAUDE.md matters for optimization -->
+  <section class="slide">
+    <h3>Exercise 1 · framing</h3>
+    <h1>Why an optimization researcher needs CLAUDE.md</h1>
+    <p>Optimization research is full of recurring micro-decisions — small, stable choices that shape every result and that you don't want to re-justify in every prompt. CLAUDE.md is where those live.</p>
+    <table class="matrix">
+      <tr><th>Decision</th><th>Why it belongs in CLAUDE.md</th></tr>
+      <tr><td>Variable naming (primal, dual, multipliers)</td><td>Pinned by the math. Letting the assistant pick its own letters mid-project breaks readability across files and notes.</td></tr>
+      <tr><td>Solver choice and modeling stack</td><td>Pyomo vs CasADi vs raw scipy.optimize. IPOPT vs BARON vs HiGHS. Each comes with assumptions about problem shape; switching silently is silently wrong.</td></tr>
+      <tr><td>Tolerances and termination</td><td>One number with outsized effect on what counts as "converged". Easy to set wrong, easy to change without noticing.</td></tr>
+      <tr><td>Figure conventions for convergence plots</td><td>Semilog axes, ‖∇f‖ vs iteration, file format, output directory. Three of these wrong and the figure is unusable in a paper.</td></tr>
+      <tr><td>Sanity-check values</td><td>Final gradient norm, function value at optimum, KKT residual. Eyeball-able numbers that distinguish "solved" from "lucky".</td></tr>
+    </table>
+    <p class="small" style="margin-top: 8px;">CLAUDE.md is read at the start of every session. The assistant doesn't re-derive your conventions — it inherits them.</p>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 4. Exercise 1 walkthrough — moved verbatim from slides_edited.html (former slide 12) -->
+  <section class="slide">
+    <h3>Exercise 1 <span class="badge">10 min</span></h3>
+    <h1>Write your own CLAUDE.md</h1>
+    <ol>
+      <li><code>cd exercises/01-claude-md/</code></li>
+      <li>Read the included <code>rosenbrock.py</code> — a deliberately under-tested SciPy solve.</li>
+      <li>Run <code>claude</code> and ask: <code>/init</code>. Read the generated CLAUDE.md.</li>
+      <li>Edit it. Add: project goal, your preferred tolerance, and one "don't" rule.</li>
+      <li>Then ask Claude: <code>add a convergence plot for rosenbrock.py using our conventions</code>.</li>
+    </ol>
+    <div class="callout">Discussion: did Claude follow your conventions? What did it miss? Add the missing rule to CLAUDE.md and try again — that's the whole loop.</div>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 5. Exercise 1 — what to look for -->
+  <section class="slide">
+    <h3>Exercise 1 · debrief</h3>
+    <h1>What to look for in Claude's output</h1>
+    <p>The improvement that respects a well-written CLAUDE.md should look something like this. Use it as a checklist, not an answer key.</p>
+    <table class="matrix">
+      <tr><th>Convention you wrote</th><th>What it produces in the code</th></tr>
+      <tr><td>Tolerance pinned (e.g., 1e-8)</td><td>Solver call passes <code>tol=1e-8</code> rather than defaulting silently. Iteration count and final gradient norm reported in the script's output.</td></tr>
+      <tr><td>Convergence plot conventions</td><td>Semilog y-axis on ‖∇f‖, linear x-axis on iteration count, with axis labels matching what your CLAUDE.md specified.</td></tr>
+      <tr><td>Figures saved, never shown</td><td>No <code>plt.show()</code>; output goes to <code>figures/convergence.pdf</code> (or whatever path you pinned).</td></tr>
+      <tr><td>Gradient history captured</td><td>A callback passed to <code>minimize</code> that records ‖∇f‖ at each iteration, then plotted — not a hand-rolled second solve.</td></tr>
+      <tr><td>"Don't" rule respected</td><td>Whatever you forbade (e.g., no extra imports, no <code>scipy.optimize.minimize</code> for constrained problems) actually doesn't appear in the diff.</td></tr>
+    </table>
+    <p class="small" style="margin-top: 8px;">If Claude missed a convention on the first try, add a sharper rule and ask again — that's the whole loop.</p>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button id="prev" title="Previous (←)">‹</button>
+  <span class="nav-label">slide</span>
+  <input class="jump-to" id="jump" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="#">
+  <button id="next" title="Next (→ or Space)">›</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    document.querySelectorAll('.footer .progress > div').forEach(b => b.style.width = ((i + 1) / slides.length * 100) + '%');
+    document.querySelectorAll('.footer .counter').forEach(c => c.textContent = (i + 1) + ' / ' + slides.length);
+  }
+  document.getElementById('prev').onclick = () => show(i - 1);
+  document.getElementById('next').onclick = () => show(i + 1);
+  document.addEventListener('keydown', e => {
+    if (document.activeElement.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight' || e.key === ' ') { show(i + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { show(i - 1); e.preventDefault(); }
+  });
+  document.getElementById('jump').addEventListener('change', e => {
+    const n = parseInt(e.target.value, 10);
+    if (!isNaN(n)) show(n - 1);
+    e.target.value = '';
+  });
+  show(0);
+</script>
+</body>
+</html>
