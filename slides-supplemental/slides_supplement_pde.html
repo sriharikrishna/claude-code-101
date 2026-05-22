@@ -220,6 +220,75 @@ The polynomial order is fixed at P1; only the mesh is in scope.</pre>
     <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
+  <!-- Exercise 3 · section divider -->
+  <section class="slide section-divider">
+    <div class="kicker">Exercise 3 · skills</div>
+    <h1>Verify a CFL condition with a skill</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Skills are the workshop's mechanism for packaging the check your team runs every project. The check is the pretext; the skill is the artifact.</p>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- Exercise 3 · framing -->
+  <section class="slide">
+    <h3>Exercise 3 · framing</h3>
+    <h1>Why a skill (and not just a function)?</h1>
+    <p>A skill is a folder Claude loads on demand — <code>SKILL.md</code> plus helper scripts. The shape is simple; what makes it earn its keep is four properties that a private function or a <code>CLAUDE.md</code> note do not have.</p>
+    <table class="matrix">
+      <tr><th>Property</th><th>Why it earns the skill its keep</th></tr>
+      <tr><td>Triggered by description, not import</td><td>Claude routes a natural-language prompt to the skill via the <code>description:</code> field — you do not tell it which file to run.</td></tr>
+      <tr><td>Stateless and deterministic</td><td>Same input gives the same output. No external service to be down, no license dance — unlike an MCP.</td></tr>
+      <tr><td>Versioned in the repo</td><td>The check travels with the project. <code>git clone</code> brings the team's CFL check along, no per-developer setup.</td></tr>
+      <tr><td>The description is the contract</td><td>Extend the helper and the description must change too. An extension that does not change the description is invisible to future natural-language requests.</td></tr>
+    </table>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- Exercise 3 · walkthrough -->
+  <section class="slide">
+    <h3>Exercise 3 <span class="badge">15 min</span></h3>
+    <h1>Run the exercise</h1>
+    <ol>
+      <li><code>cd exercises-pde/03-skills</code></li>
+      <li>Install the skills into the project-local hidden directory:
+        <pre>mkdir -p .claude
+cp -R skills .claude/</pre>
+      </li>
+      <li>Launch <code>claude</code>. No interactive container needed — the skill calls <code>docker run --rm</code> itself when it fires.</li>
+      <li>Paste the prompt — note that it does <i>not</i> name the skill; description-routing is what is being tested:
+        <pre>Verify that the proposed timestep in candidate.json is CFL-safe
+for the wave problem defined in problem.py.</pre>
+      </li>
+      <li>Approve the docker command when Claude prompts you (the default permission policy flags new shell commands). Read the <code>PASS</code> output — note the <code>safe</code> bound and the per-layer summary.</li>
+      <li>Edit <code>candidate.json</code> to <code>{"dt": 0.05}</code>. Re-ask. Confirm <code>FAIL</code> and that the violators localize to the bottom (high-<code>c</code>) layer.</li>
+      <li>Restore <code>dt</code> below <code>safe</code>. Re-run. Back to <code>PASS</code>.</li>
+    </ol>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- Exercise 3 · debrief -->
+  <section class="slide">
+    <h3>Exercise 3 · debrief</h3>
+    <h1>What you should see</h1>
+    <p>Read Claude's <i>behavior</i> as much as the skill's output. The pass / fail / restore loop is deterministic; what varies between learners is how cleanly the skill mechanism worked end-to-end.</p>
+    <table class="matrix">
+      <tr><th>What you should see</th><th>Detail</th></tr>
+      <tr><td>Passing run</td><td><code>PASS: dt = 0.002, safe ~ 8e-3</code>. Limiting cell is in the bottom layer; per-layer summary shows the bottom roughly 2× tighter than the top.</td></tr>
+      <tr><td>Failing run</td><td><code>FAIL: dt = 0.05</code>. Several hundred violators, all in the bottom layer (between the two per-layer minima).</td></tr>
+      <tr><td>What flipped</td><td>The lead (<code>PASS</code> → <code>FAIL</code>). The <code>safe</code> bound itself did not change — it is a property of the discretization, not of <code>dt</code>.</td></tr>
+      <tr><td>Behavior to watch</td><td>Did Claude run the skill, or recompute the check inline? Did it use the docker-wrapped command, or try bare <code>python3</code> on the host? Did it show the full output, or paraphrase?</td></tr>
+    </table>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- Exercise 3 · closing -->
+  <section class="slide">
+    <h3>Exercise 3 · closing</h3>
+    <h1>Skills as your team's checklists</h1>
+    <p>Every research group has a small set of checks they re-derive every project — KKT residuals, CFL bounds, convergence-rate fits, mesh-quality reports, citation-format validators. Skills are the place those checks earn back their authorship cost. The price is small (a <code>SKILL.md</code> and a script); the payoff is that everyone in the group, and every future Claude session, runs the same check the same way.</p>
+    <div class="callout">If you only remember one rule about skills: <b>the description is the contract</b>. When you extend a skill, update its description in the same commit — otherwise the new capability is invisible to natural-language routing, and the next person to ask for it will silently re-derive what you already built.</div>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
 </div>
 
 <div class="nav">
