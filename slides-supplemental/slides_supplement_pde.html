@@ -141,6 +141,85 @@
     <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
+  <!-- 6. SECTION: Exercise 2 -->
+  <section class="slide section-divider">
+    <div class="kicker">Exercise 2 · plan mode</div>
+    <h1>Plan a fix for a broken convergence test</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">The deliverable is working code, not just a plan. Plan mode is the <i>method</i>; the recovered convergence rate is the <i>artifact</i>. Fifteen minutes from "this is broken" to "it isn't anymore."</p>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 7. Why a plan first -->
+  <section class="slide">
+    <h3>Exercise 2 · framing</h3>
+    <h1>Why a plan first for a broken convergence test</h1>
+    <p>The L-shape corner singularity is one of the most-taught problems in FEM, so the assistant has a strong textbook answer ready. Plan mode is what lets you check whether that textbook matches <i>this</i> code before any of it is written.</p>
+    <table class="matrix">
+      <tr><th>Decision</th><th>What plan mode forces you to settle in advance</th></tr>
+      <tr><td>Diagnostic chosen</td><td>What "where the error is" actually means — element-wise <code>|u_h − u_exact|</code> vs. a residual indicator vs. eyeballing a plot. Skip this and you are refining without evidence.</td></tr>
+      <tr><td>Refinement mechanism</td><td>Whether the implementation is one line or a hundred. <code>MeshHierarchy</code> + coordinate transformation, NetgenHierarchy with a marker, PETSc-level cell refinement — pick one before code is written.</td></tr>
+      <tr><td>Grading parameters</td><td>What "graded toward the corner" actually means: a radius, a depth, an exponent, a marking criterion. Defaults pinned in the plan, not invented during implementation.</td></tr>
+      <tr><td>Out-of-scope discipline</td><td>Keeps the assistant from rewriting the rates harness while it is in there. Lose the harness and you lose the before/after comparison.</td></tr>
+      <tr><td>Visible before/after</td><td>The same harness runs both times; that is the test. The plan has to leave the rates loop intact.</td></tr>
+    </table>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 8. Claude is a tool -->
+  <section class="slide">
+    <h3>Exercise 2 · principle</h3>
+    <h1>Claude is a tool. You are the scientist.</h1>
+    <p>On a classical pedagogical problem like this one, the assistant has seen the textbook answer many times and will draft it quickly. That cuts both ways: it tends to compress the diagnosis step — "we know it is the corner" — or to substitute a different refinement strategy than the one you asked for, because that is the variant it has seen more often.</p>
+    <p>Your job in plan mode is to decide <i>how much structure to impose</i> so the plan actually matches the problem in front of you. The "only the mesh is in scope" line in the prompt is one example of that structure. When you find yourself imposing the same structure session after session, promote it into your <code>CLAUDE.md</code>; that is what the file is for.</p>
+    <div class="callout">Claude Code becomes risky the moment you start trusting it to make major scientific decisions without checking. The pattern-match is fast and often plausible, and on a familiar problem it is very hard to tell a textbook reflex from real reasoning. The check has to come from you.</div>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 9. Run the exercise -->
+  <section class="slide">
+    <h3>Exercise 2 <span class="badge">15 min</span></h3>
+    <h1>Run the exercise</h1>
+    <ol>
+      <li><code>cd exercises-pde/02-planning &amp;&amp; claude</code>; start the Firedrake container per <code>../01-claude-md/INSTALL.md</code>.</li>
+      <li>In the container, run <code>python3 laplace_lshape.py</code>. Note the L² rate stuck around <code>4/3</code> and the H¹ rate around <code>2/3</code> — far from the <code>2.0</code> and <code>1.0</code> the footer line says to expect.</li>
+      <li>Press <code>Shift+Tab</code> twice to enter plan mode (look for the indicator at the bottom of the screen).</li>
+      <li>Paste the prompt and submit. Do <i>not</i> approve yet.
+        <pre>The convergence in this code is suboptimal. Create a plan to
+identify where the error is concentrated, then construct an a
+priori mesh refinement strategy in the problem regions.
+
+The polynomial order is fixed at P1; only the mesh is in scope.</pre>
+      </li>
+      <li>Read the plan against four highest-leverage questions: <b>diagnostic mechanism?</b> <b>refinement primitive?</b> <b>grading parameters?</b> <b>what is out of scope?</b> Push back on at least one.</li>
+      <li>Approve. Watch the assistant edit <code>laplace_lshape.py</code>. Re-run; the L² rate should climb visibly toward <code>2.0</code>.</li>
+    </ol>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 9. Debrief -->
+  <section class="slide">
+    <h3>Exercise 2 · debrief</h3>
+    <h1>What a good plan + implementation produces</h1>
+    <p>A plan that survives review on this exercise has six sections. Each one closes off a class of drift that would otherwise surface during implementation.</p>
+    <table class="matrix">
+      <tr><th>Plan section</th><th>What it contains for this exercise</th></tr>
+      <tr><td>Goal</td><td>One paragraph. Modify <code>laplace_lshape.py</code> so the study refines more densely near the corner; target L² rate toward 2.0 and H¹ toward 1.0; keep the rates harness, manufactured solution, BC, and P1 untouched.</td></tr>
+      <tr><td>Step-by-step</td><td>Inspect the mesh → implement the element-wise error diagnostic → implement the grading transformation → wire it into the rates loop → run and verify.</td></tr>
+      <tr><td>Out of scope</td><td>A posteriori adaptive marking. Dörfler loops. hp-refinement. Alternative element families. Touching the manufactured solution, the BC, or the polynomial order.</td></tr>
+    </table>
+    <p class="small" style="margin-top: 8px;">A successful run shows the rates moving visibly in the right direction — not necessarily reaching the textbook constants. Closing the last fraction is FEM-tuning craft and out of scope for this exercise.</p>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 10. Closing -->
+  <section class="slide">
+    <h3>Exercise 2 · closing</h3>
+    <h1>What plan mode is really for</h1>
+    <p>Plan mode produces text. The value is not the text — it is the questions the <i>act</i> of planning forces you to answer in advance. They are the same questions you would have hit during implementation, just in an order where you can still afford to redirect cheaply. On a problem the assistant knows well, those questions are also the ones the assistant most wants to skip; on a problem it has never seen, they are the ones you most need to spell out. Either way, the scientist is you.</p>
+    <div class="callout">Take the conventions you found yourself imposing back to your <code>CLAUDE.md</code>. The next exercise builds on that file again.</div>
+    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
 </div>
 
 <div class="nav">
