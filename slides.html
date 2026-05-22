@@ -588,7 +588,7 @@ Develop a primal-dual IPM with inertia correction for nonconvex NLPs.
   <section class="slide">
     <h3>Planning</h3>
     <h1>Why plan first?</h1>
-    <p>Optimization problems have tightly coupled steps: model formulation, derivative computation, scaling, regularization, line search, termination. Without a plan, the assistant fixes one and breaks another.</p>
+    <p>Research code has tightly coupled steps: problem formulation, discretization or transcription, numerical scheme, parameter choices, verification. Without a plan, the assistant fixes one and breaks another.</p>
     <ul>
       <li>Plan mode gives you a written specification before any code is written.</li>
       <li>The plan itself is a deliverable: paste it into your notes.</li>
@@ -633,17 +633,10 @@ Open questions:
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
-  <!-- 17. Exercise 2 -->
-  <section class="slide">
-    <h3>Exercise 2 <span class="badge">15 min</span></h3>
-    <h1>Plan a small MINLP</h1>
-    <ol>
-      <li><code>cd exercises/02-planning/</code></li>
-      <li>Open <code>minlp_seed.py</code> — a portfolio problem with binary cardinality constraints.</li>
-      <li>Enter plan mode. Ask: <code>plan a Pyomo formulation, a relaxation-based heuristic, and a benchmarking harness against BARON.</code></li>
-      <li>Save the plan to <code>plans/$(date +%Y-%m-%d)-portfolio.md</code>. Discuss with your neighbor: what does it miss?</li>
-    </ol>
-    <div class="callout">The output is the plan, not the code. Write down one assumption you would have made wrong without the plan.</div>
+  <!-- 17. Exercise 2 — pointer to supplemental deck -->
+  <section class="slide section-divider">
+    <h1>Exercise 2</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Please refer to your supplemental slide deck.</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -802,17 +795,10 @@ Returns max residuals for stationarity, feasibility, complementarity.</code></pr
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
-  <!-- 23. Exercise 3 -->
-  <section class="slide">
-    <h3>Exercise 3 <span class="badge">15 min</span></h3>
-    <h1>Use a skill to verify a KKT point</h1>
-    <ol>
-      <li><code>cd exercises/03-skills/</code></li>
-      <li>The folder ships with <code>.claude/skills/kkt-checker/</code> and a small QP whose solution is in <code>solution.json</code>.</li>
-      <li>Run <code>claude</code> and ask: <code>verify the candidate solution in solution.json against problem.py</code>.</li>
-      <li>Now corrupt one multiplier and re-run. Confirm Claude reports the failing residual.</li>
-      <li>Stretch: ask Claude to extend the skill to also report the active set.</li>
-    </ol>
+  <!-- 23. Exercise 3 — pointer to supplemental deck -->
+  <section class="slide section-divider">
+    <h1>Exercise 3</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Please refer to your supplemental slide deck.</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
