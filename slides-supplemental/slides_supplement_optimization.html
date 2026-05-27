@@ -226,6 +226,73 @@ defined in problem.py.</pre>
     <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
+  <section class="slide section-divider">
+    <div class="kicker">Exercise 5 · MCP</div>
+    <h1>Wrap a toy QP solver as an MCP server</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">An MCP exposes a capability to <i>every</i> future session in this project. Register once; invoke by tool name forever.</p>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- Exercise 5 · framing -->
+  <section class="slide">
+    <h3>Exercise 5 · framing</h3>
+    <h1>MCP vs skill vs <code>CLAUDE.md</code> note</h1>
+    <p>Three places to put a capability. They overlap, but each one earns its keep in a different regime.</p>
+    <table class="matrix">
+      <tr><th>Mechanism</th><th>When it earns its keep</th></tr>
+      <tr><td><code>CLAUDE.md</code> note</td><td>One-shot conventions ("always normalize <code>Q</code> before <code>solve_qp</code>"). No code needed; Claude reads <code>CLAUDE.md</code> every session.</td></tr>
+      <tr><td>Skill</td><td>Stateless, reusable inside this project, ships in the repo. The KKT-residual check from Exercise 3 is the canonical shape.</td></tr>
+      <tr><td>MCP</td><td>Persistent state worth keeping warm across calls; or it talks to something Claude can't run inline (a licensed solver, a remote cluster); or it needs to be available to many sessions across many projects.</td></tr>
+    </table>
+    <div class="callout" style="background: #8a1f1f; color: #fbfaf6; border-left-color: #4a0e0e; font-weight: 500;">The toy in this exercise is honestly <i>skill-shaped</i> — the MCP shell is what's being taught. The stretch (swap <code>cvxpy</code> for a warmed-up PETSc/TAO process) is where the persistent-state justification actually bites.</div>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- Exercise 5 · walkthrough -->
+  <section class="slide">
+    <h3>Exercise 5 <span class="badge">15 min</span></h3>
+    <h1>Run the exercise</h1>
+    <ol>
+      <li><code>cd exercises/05-mcp/</code> and <code>pip install -r requirements.txt</code>.</li>
+      <li>Open <code>toy_solver_mcp.py</code> — a ~60-line MCP server exposing <code>solve_qp(Q, c, A, b)</code> via <code>cvxpy</code>.</li>
+      <li>Register the server:
+        <pre>claude mcp add toy-solver --command python --args toy_solver_mcp.py</pre>
+        <p style="color: #8a1f1f; font-weight: 500; font-size: 16px; margin: 6px 0 0;">⚠ Verify before running live: recent <code>claude</code> versions removed the <code>--command</code>/<code>--args</code> flags in favor of <code>claude mcp add toy-solver -- python3 toy_solver_mcp.py</code>. Run <code>claude mcp add --help</code> to confirm the syntax on your install. On Homebrew macOS, only <code>python3</code> is on PATH (no <code>python</code>).</p>
+      </li>
+      <li>Launch <code>claude</code> in this directory and paste:
+        <pre>Solve the QP in problem.json using the toy-solver MCP and report
+the structured result.</pre>
+      </li>
+      <li>Edit <code>problem.json</code> (change <code>c</code>, or perturb a row of <code>A</code>) and re-prompt. Confirm Claude re-calls the MCP rather than recycling the prior answer.</li>
+    </ol>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- Exercise 5 · debrief -->
+  <section class="slide">
+    <h3>Exercise 5 · debrief</h3>
+    <h1>What "MCP routing" looks like</h1>
+    <p>The artifact to inspect is not the optimum — it is the <i>call</i>. Read what Claude did against this checklist.</p>
+    <table class="matrix">
+      <tr><th>Good routing</th><th>What to push back on</th></tr>
+      <tr><td>Calls <code>toy-solver:solve_qp</code> by name.</td><td>Solves the QP inline with <code>cvxpy</code> — bypasses the MCP entirely.</td></tr>
+      <tr><td>Arguments at the wire match <code>problem.json</code> verbatim — <code>Q</code>, <code>c</code>, <code>A</code>, <code>b</code> all in the right shape.</td><td>Reshaped <code>Q</code>, rounded entries, or symmetrized inputs in passing without telling you.</td></tr>
+      <tr><td>Reports the structured payload (status, optimum, primal, dual) verbatim alongside any prose.</td><td>Paraphrases as "optimal, value ≈ -3.2, looks fine" and drops the JSON.</td></tr>
+      <tr><td>Re-calls the MCP when <code>problem.json</code> changes.</td><td>Recycles the prior answer — treats the first call as a memo, not a tool.</td></tr>
+      <tr><td>Treats the MCP as the source of truth.</td><td>Cross-checks with an inline <code>cvxpy</code> solve, then second-guesses the MCP.</td></tr>
+    </table>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- Exercise 5 · closing -->
+  <section class="slide">
+    <h3>Exercise 5 · closing</h3>
+    <h1>MCP = capability that survives the session</h1>
+    <p>The artifact this exercise produced is not the QP solver. It is the <i>registered tool name</i> — <code>toy-solver:solve_qp</code> — that any future session in this folder can invoke without setup, without re-explaining, without re-implementing.</p>
+    <div class="callout">The stretch is where the design compounds: swap <code>cvxpy</code> for PETSc/TAO with a warmed-up solver process and the MCP starts amortizing setup cost across every call. That is the regime where <i>"MCP, not skill"</i> stops being a teaching point and starts being the design that actually wins. The capstone (Exercise 6) is where multiple MCPs meet in a single workflow.</div>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
 </div>
 
 <div class="nav">
