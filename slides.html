@@ -841,16 +841,10 @@ Returns max residuals for stationarity, feasibility, complementarity.</code></pr
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
-  <!-- 27. Exercise 4 -->
-  <section class="slide">
-    <h3>Exercise 4 <span class="badge">10 min</span></h3>
-    <h1>Bootstrap a MEMORY.md</h1>
-    <ol>
-      <li><code>cd exercises/04-memory/</code> — a small folder with three lab notebook entries.</li>
-      <li>Run <code>claude</code> and ask: <code>read notebooks/ and produce MEMORY.md with sections Decisions, Parameters, Dead Ends, Open Questions.</code></li>
-      <li>Review and edit. The first draft is always too long.</li>
-      <li>Now ask: <code>given MEMORY.md, what's the next experiment I should run?</code> Discuss the answer.</li>
-    </ol>
+  <!-- 27. Exercise 4 — pointer to supplemental deck -->
+  <section class="slide section-divider">
+    <h1>Exercise 4</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Please refer to your supplemental slide deck.</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -896,15 +890,15 @@ Then re-run pytest tests/test_linesearch.py -k HS071.</code></pre>
   <section class="slide">
     <h3>MEMORY.md</h3>
     <h1>Literature: the fifth artifact</h1>
-    <p class="lede">For optimization researchers, literature reading is a daily activity — and the highest-leverage place where Claude as a <i>co-scientist</i> differs from Claude as a <i>programmer</i>. Treat it as first class.</p>
+    <p class="lede" style="font-size: 19px;">For computational mathematicians, literature reading is a daily activity — and the highest-leverage place where Claude as a <i>co-scientist</i> differs from Claude as a <i>programmer</i>. Treat it as first class.</p>
     <table class="matrix">
       <tr><th></th><th>Claude does well</th><th>Claude does badly</th></tr>
       <tr><td>PDFs</td><td>Extract text, equations, tables (built-in <code>pdf</code> skill)</td><td>Decide what a result <i>really means</i> — that's still you</td></tr>
       <tr><td>Notation</td><td>Translate between Nocedal–Wright / Conn–Gould–Toint / Boyd–Vandenberghe</td><td>Catch subtle distinctions (B- vs. M- vs. S-stationarity) without your verification</td></tr>
       <tr><td>Citations</td><td>Resolve fragments via <code>arxiv</code> / <code>semantic-scholar</code> MCP</td><td>Emit citations from memory — these are often <b>plausible-looking and wrong</b></td></tr>
     </table>
-    <p>Add <code>literature/</code> alongside <code>plans/</code>: one file per paper, named by BibTeX key. MEMORY.md decisions cite both.</p>
-    <pre><code>project/
+    <p style="font-size: 19px;">Add <code>literature/</code> alongside <code>plans/</code>: one file per paper, named by BibTeX key. MEMORY.md decisions cite both.</p>
+    <pre style="font-size: 17px;"><code>project/
 ├── CLAUDE.md
 ├── MEMORY.md          # cites plans/ AND literature/
 ├── STATUS.md
