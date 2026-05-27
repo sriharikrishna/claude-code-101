@@ -1023,17 +1023,10 @@ claude mcp remove sqlite</code></pre>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
-  <!-- 33. Exercise 5 -->
-  <section class="slide">
-    <h3>Exercise 5 <span class="badge">15 min</span></h3>
-    <h1>Wrap a toy solver as an MCP</h1>
-    <ol>
-      <li><code>cd exercises/05-mcp/</code></li>
-      <li>Open <code>toy_solver_mcp.py</code> — a 60-line MCP server exposing <code>solve_qp(Q, c, A, b)</code> via <code>cvxpy</code>.</li>
-      <li>Register it: <code>claude mcp add toy --command python --args toy_solver_mcp.py</code>.</li>
-      <li>In a new session, ask: <code>solve the QP in problem.json using the toy MCP and append the result to MEMORY.md</code>.</li>
-    </ol>
-    <div class="callout">Stretch goal: replace cvxpy with PETSc/TAO's bound-constrained QP. Same MCP shell, different solver — that's the whole point.</div>
+  <!-- Exercise 5 — pointer to supplemental deck -->
+  <section class="slide section-divider">
+    <h1>Exercise 5</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Please refer to your supplemental slide deck.</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
