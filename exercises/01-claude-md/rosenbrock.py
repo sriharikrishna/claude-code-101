@@ -1,9 +1,5 @@
-"""Toy Rosenbrock solve. Used in workshop exercise 01.
-
-This script is deliberately under-specified: no logging, no convergence
-plot, a poor starting point. The exercise is to ask Claude Code to
-improve it under your CLAUDE.md conventions.
-"""
+"""Toy Rosenbrock solve. Used in workshop exercise 01."""
+import numpy as np
 from scipy.optimize import minimize
 
 
@@ -21,7 +17,21 @@ def rosenbrock_grad(x):
     return g
 
 
+def solve(x0):
+    history = []  # list of ||grad f|| per iteration
+
+    def cb(xk):
+        f = rosenbrock(xk)
+        gn = float(np.linalg.norm(rosenbrock_grad(xk)))
+        history.append(gn)
+        print(f"iter {len(history):3d}  f={f:.6e}  ||grad f||={gn:.3e}")
+
+    res = minimize(rosenbrock, x0, jac=rosenbrock_grad, method="BFGS",
+                   callback=cb)
+    return res, history
+
+
 if __name__ == "__main__":
     x0 = [-1.2, 1.0, -1.2, 1.0, -1.2]  # the textbook bad start
-    res = minimize(rosenbrock, x0, jac=rosenbrock_grad, method="BFGS")
+    res, _ = solve(x0)
     print(res)
