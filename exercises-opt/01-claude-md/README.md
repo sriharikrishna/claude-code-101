@@ -1,77 +1,114 @@
-# Exercise 1 — Write a CLAUDE.md (10 min)
+# Exercise 1 — Let /init write CLAUDE.md (10 min)
 
-**Goal.** Experience how a CLAUDE.md changes the assistant's behavior on the *same* prompt.
+**Goal.** Experience how `/init` reads your source code and generates a
+CLAUDE.md that knows your variable names and conventions — without you
+having to write it by hand.
 
-## Steps
+## The problem
+
+`max_conopt.py` solves a mysterious constrained optimization problem.
+It uses `unopy` (Uno NLP solver) and a multistart strategy to escape
+local minima.
+
+The script has no plot. The documentation in `max_conopt.md` describes the
+interface but deliberately omits the geometric meaning of the variables.
+
+## Setup
+
+```bash
+cd exercises/01-claude-md
+conda create -n conopt-opt python=3.11 numpy scipy matplotlib
+conda activate conopt-opt
+pip install unopy
+```
+
+Verify the solver works:
+
+```bash
+python max_conopt.py --nv 8 --nstarts 10
+# should print: Best objf: 0.726868
+```
+
+For a run that shows the multistart staircase:
+
+```bash
+python max_conopt.py --nv 12 --nstarts 30
+# should show 2-3 improvements before settling at Best objf ~0.761
+```
+
+## Phase 1 — Without /init
 
 1. Open this folder in a Claude Code session:
 
    ```bash
-   cd exercises/01-claude-md
    claude
    ```
 
-2. Read `rosenbrock.py`. It's a deliberately under-specified SciPy solve with no convergence plot, no logging, and a poor starting point.
+2. Read `max_conopt.md`. This is Claude's only project context.
 
-3. **First, with no CLAUDE.md.** Ask:
-
-   ```
-   add a convergence plot for rosenbrock.py
-   ```
-
-   Watch what Claude produces. It will pick a plotting library, axis scales, file location, and naming scheme — probably none matching what you'd want.
-
-4. **Now create a CLAUDE.md.** Either:
-
-   - Run `/init` and let Claude generate one, then edit it; or
-   - Copy the seed below and edit it.
-
-   ```markdown
-   # Project: Rosenbrock playground
-
-   ## Goal
-   Toy problem for the workshop. We use it to demonstrate convergence plots
-   and our standard logging conventions.
-
-   ## Stack
-   - Python 3.11, scipy.optimize for the inner solver
-   - matplotlib for figures (semilog by default)
-
-   ## Conventions
-   - Optimization variable: `x` (always).
-   - Tolerance: 1e-8 unless explicitly noted.
-   - Figures saved to `figures/` as PDF, 4 inches wide.
-   - Convergence plots: y-axis is `‖∇f‖` on log scale, x-axis iteration count.
-
-   ## Don'ts
-   - No GUI plotting (`plt.show()`); always save to `figures/`.
-   - Don't pip install new packages without asking.
-
-   ## Testing
-   - After any code edit: run `pytest -q` and surface failures in the
-     next reply before continuing. Don't claim done until tests pass.
-   ```
-
-5. Reset the conversation (`/clear`) and re-ask:
+3. Ask:
 
    ```
-   add a convergence plot for rosenbrock.py
+   add a conopt solution plot and a convergence plot to max_conopt.py
    ```
 
-6. Compare. Which conventions did Claude pick up automatically? Which did it miss? Add the missing rule to CLAUDE.md and try again.
+4. Study what Claude produces. Look for:
+   - Does it use `u` and `v` directly as x/y coordinates?
+   - Does the y-axis of the conopt plot reach values near π (~3.14)?
+   - Is the conopt closed (last vertex connected back to first)?
+   - Does it know what the fixed last vertex represents geometrically?
+
+## Phase 2 — With /init
+
+5. Download the problem descriptions of COPS 3.0, e.g. from `bash` shell:
+
+   ```bash
+   xdg-open https://www.mcs.anl.gov/~more/cops/cops3.pdf
+   ```
+
+6. Back in `claude`, clear the conversation:
+
+   ```
+   /clear
+   ```
+
+7. Run:
+
+   ```
+   /init
+   ```
+
+   Read the CLAUDE.md that Claude generates. Does it mention polar
+   coordinates? Does it include the conversion formula? Did it find
+   the problem?
+
+8. Re-ask the same prompt:
+
+   ```
+   add a conopt solution plot and a convergence plot to max_conopt.py
+   ```
+
+9. Compare Phase 1 and Phase 2. Which output is closer to correct?
 
 ## Discussion prompts
 
-- What conventions in your own research project would you encode first?
-- Where is the boundary between CLAUDE.md (stable) and MEMORY.md (evolving)?
+- Which formula in `max_conopt.py` let `/init` deduce the coordinate
+  system? (Hint: look at what the area objective and the diameter
+  constraint have in common.)
+- What would you need to add manually to the generated CLAUDE.md that
+  `/init` is unlikely to infer on its own?
+- What variable names in your own research code would confuse Claude
+  without `/init`?
+- Can you get intermediate output from unopy, and choose a different
+  solver?
 
 ## Stretch
 
-Ask Claude:
+Run `python max_conopt.py --nv 12 --nstarts 30 --plot` after adding the
+`--plot` flag. The convergence plot should show a clear staircase where
+multistart finds successively better local optima.
 
-```
-suggest three more rules I should add to CLAUDE.md for a research project
-on inertia-corrected interior-point methods.
-```
+Ask claude to update/rename 'max_conopt.py` and add better documentation.
 
-Read the answer critically — accept maybe two of three.
+Ask Claude to suggest two more rules to add to the generated CLAUDE.md.
+Accept one, discard one, and explain why.
