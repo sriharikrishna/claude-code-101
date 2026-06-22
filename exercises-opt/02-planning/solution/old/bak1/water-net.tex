@@ -1,0 +1,155 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+
+\newcommand{\R}{\mathcal{R}}   % reservoirs
+\newcommand{\Cs}{\mathcal{C}}  % consumers
+\newcommand{\N}{\mathcal{N}}   % nodes
+\newcommand{\A}{\mathcal{A}}   % arcs
+
+\title{A Water Distribution Network Design Model\\
+\large An MPEC reformulation of the original MINLP}
+\author{Mathematical description of \texttt{water-net.mod}}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+
+The model designs a water distribution network: it chooses pipe diameters,
+the supply drawn from reservoirs, and the resulting flows and pressures so as
+to minimize the combined cost of pumping, raw water, and pipe investment, while
+respecting flow conservation and the physical pressure-loss law on each pipe.
+
+The original formulation is a mixed-integer nonlinear program (MINLP): a binary
+variable on each arc selects the direction of flow. Here the flow on each arc is
+split into a nonnegative \emph{positive} part $qp$ and a nonnegative
+\emph{negative} part $qn$, and the integrality is replaced by a
+\emph{complementarity} condition that forbids both parts from being active
+simultaneously. The result is a continuous mathematical program with
+complementarity constraints (MPEC), described below.
+
+\section{Sets}
+
+\begin{align*}
+\N &= \text{nodes of the network},\\
+\R &\subseteq \N : \text{reservoirs (supply sources)},\\
+\Cs &\subseteq \N : \text{consumers (demand sinks)},\\
+\A &\subseteq \N \times \N : \text{arcs (directed pipe connections)}.
+\end{align*}
+
+\section{Parameters}
+
+Each node $i \in \N$ carries data
+$\mathit{demand}_i$, $\mathit{height}_i$, coordinates $(x_i, y_i)$,
+$\mathit{supply}_i$, $\mathit{wcost}_i$ (water cost), and
+$\mathit{pcost}_i$ (pumping cost). The remaining parameters are scalars:
+
+\begin{center}
+\begin{tabular}{llr}
+\toprule
+Symbol & Meaning & Value \\
+\midrule
+$\mathit{dpow}$  & power on diameter in the pressure-loss equation & $5.33$ \\
+$\mathit{dmin}$  & minimum pipe diameter & $0.15$ \\
+$\mathit{dmax}$  & maximum pipe diameter & $2.00$ \\
+$\mathit{hloss}$ & constant in the pressure-loss equation & $1.03\times10^{-3}$ \\
+$\mathit{dprc}$  & scale factor in the investment-cost equation & $6.90\times10^{-2}$ \\
+$\mathit{cpow}$  & power on diameter in the cost equation & $1.29$ \\
+$r$              & interest rate & $0.10$ \\
+$\mathit{maxq}$  & bound on $qp$ and $qn$ & $2.00$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Several parameters are derived from the data:
+\begin{align}
+\mathit{dist}_{ij} &= \sqrt{(x_i - x_j)^2 + (y_i - y_j)^2},
+   && (i,j)\in\A \quad\text{(Euclidean pipe length)},\\
+\mathit{davg} &= \sqrt{\mathit{dmin}\cdot\mathit{dmax}}
+   && \text{(geometric-mean diameter, used for initialization)},\\
+\mathit{rr} &= \frac{\sum_{i\in\Cs}\mathit{demand}_i}
+                    {\sum_{i\in\R}\mathit{supply}_i}
+   && \text{(ratio of total demand to total supply)},\\
+\mathit{hl}_i &= \mathit{height}_i +
+   \begin{cases} 7.5 + 5\,\mathit{demand}_i, & i \in \Cs,\\[2pt] 0, & i \notin \Cs,\end{cases}
+   && i\in\N \quad\text{(minimum required pressure head)}.
+\end{align}
+
+\section{Variables}
+
+\begin{align}
+qp_{ij} &\in [0,\ \mathit{maxq}], && (i,j)\in\A &&\text{positive flow on each arc } [\mathrm{m^3/s}],\\
+qn_{ij} &\in [0,\ \mathit{maxq}], && (i,j)\in\A &&\text{negative flow on each arc } [\mathrm{m^3/s}],\\
+d_{ij}  &\in [\mathit{dmin},\ \mathit{dmax}], && (i,j)\in\A &&\text{pipe diameter } [\mathrm{m}],\\
+h_i     &\ge \mathit{hl}_i, && i\in\N &&\text{pressure head at each node } [\mathrm{m}],\\
+s_i     &\in [0,\ \mathit{supply}_i], && i\in\R &&\text{supply drawn at each reservoir } [\mathrm{m^3/s}].
+\end{align}
+
+\section{Objective}
+
+The objective \texttt{cost} sums three terms: the discounted operating cost at
+the reservoirs (pumping against the head $h_i-\mathit{height}_i$ plus raw-water
+cost, annualized by the interest rate $r$), the pipe investment cost, and a
+small penalty on total flow:
+\begin{equation}
+\tag{\texttt{cost}}
+\min\quad
+\frac{1}{r}\sum_{i\in\R} s_i\,\mathit{pcost}_i\,\bigl(h_i - \mathit{height}_i\bigr)
+\;+\; \frac{1}{r}\sum_{i\in\R} s_i\,\mathit{wcost}_i
+\;+\; \mathit{dprc}\sum_{(i,j)\in\A}\mathit{dist}_{ij}\,d_{ij}^{\,\mathit{cpow}}
+\;+\; \sum_{(i,j)\in\A}\bigl(qp_{ij} + qn_{ij}\bigr).
+\end{equation}
+
+\section{Constraints}
+
+\paragraph{Flow conservation (\texttt{cont}).}
+At every node, net inflow plus any reservoir supply equals the demand:
+\begin{equation}
+\tag{\texttt{cont}}
+\sum_{(j,i)\in\A}\bigl(qp_{ji} - qn_{ji}\bigr)
+\;-\; \sum_{(i,j)\in\A}\bigl(qp_{ij} - qn_{ij}\bigr)
+\;+\; \begin{cases} s_i, & i\in\R,\\ 0, & i\notin\R \end{cases}
+\;=\; \mathit{demand}_i,
+\qquad i\in\N.
+\end{equation}
+Here $\sum_{(j,i)\in\A}$ runs over arcs entering node $i$ and
+$\sum_{(i,j)\in\A}$ over arcs leaving it; the signed flow on an arc is
+$qp - qn$.
+
+\paragraph{Pressure loss (\texttt{loss}).}
+On each arc the head difference is related to the flow and diameter through the
+nonlinear pressure-loss law (with flow exponent $\mathit{qpow}=2$):
+\begin{equation}
+\tag{\texttt{loss}}
+h_i - h_j
+\;=\; \mathit{hloss}\,\mathit{dist}_{ij}\,
+   \frac{qp_{ij}^{\,2} - qn_{ij}^{\,2}}{d_{ij}^{\,\mathit{dpow}}},
+\qquad (i,j)\in\A.
+\end{equation}
+
+\paragraph{Complementarity (\texttt{compl}).}
+On each arc the flow is either positive or negative, never both. Since
+$qp_{ij}, qn_{ij}\ge 0$, this is enforced by requiring their products to vanish,
+written as a single aggregated inequality:
+\begin{equation}
+\tag{\texttt{compl}}
+\sum_{(i,j)\in\A} qp_{ij}\,qn_{ij} \;\le\; 0.
+\end{equation}
+Together with nonnegativity this forces $qp_{ij}\,qn_{ij}=0$ for every arc,
+i.e.\ $0 \le qp_{ij} \perp qn_{ij} \ge 0$, the complementarity that replaces the
+binary direction variable of the original MINLP.
+
+\section{Remarks}
+
+The model is nonconvex: the pressure-loss constraint \texttt{loss} is bilinear
+in the flows and divides by $d_{ij}^{\,5.33}$, and the investment term in
+\texttt{cost} is a fractional power of the diameter. The complementarity
+constraint \texttt{compl} makes the feasible region degenerate (its linear
+independence constraint qualification fails at every feasible point), which is
+the characteristic difficulty of MPECs.
+
+\end{document}

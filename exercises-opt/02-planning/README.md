@@ -1,24 +1,24 @@
-# Exercise 2 — Plan a small MINLP (15 min)
+# Exercise 2 — Plan a small NLP (15 min)
 
-***THIS NEEDS TO BE CHANGED! I THINK THERE NEEDS TO BE A PROCESS OF CHECKING/WALKING THROUGH THE PLAN***
-
-**Goal.** Use plan mode to lay out the structure of a small MINLP project before any code is written.
+**Goal.** Use plan mode to lay out the structure of a small NLP project before any code is written.
 
 ## The problem
 
-Sparse mean-variance portfolio selection with cardinality constraint:
+Sparse mean-variance portfolio selection with cardinality constraint,
+modeled as complementarity $w^\top (\mathbf{1} - z) \le 0$.
 
 $$
 \begin{aligned}
 \min_{w, z} \quad & w^\top \Sigma w - \tau \mu^\top w \\
 \text{s.t.} \quad & \mathbf{1}^\top w = 1 \\
-& 0 \le w \le z \\
 & \mathbf{1}^\top z \le K \\
-& z \in \{0, 1\}^n
+& w^\top (\mathbf{1} - z) \le 0 \\
+& w \ge 0 \\
+& z \in [0, 1]^n
 \end{aligned}
 $$
 
-with $n = 50$ assets and cardinality $K = 8$. Data is in `minlp_seed.py`.
+with $n = 50$ assets and cardinality $K = 8$. Data is in `nlp_seed.py`.
 
 ## Steps
 
@@ -27,20 +27,26 @@ with $n = 50$ assets and cardinality $K = 8$. Data is in `minlp_seed.py`.
 3. Ask:
 
    ```
-   plan a Pyomo formulation for the cardinality-constrained portfolio
-   problem in minlp_seed.py, plus a relaxation-based heuristic that
-   warm-starts BARON. Include a benchmarking harness that records
-   solve time, optimality gap, and selected assets to a CSV.
+   plan a Python/unopy formulation for the cardinality-constrained portfolio
+   problem in nlp_seed.py, plus a strategy for exploring the Pareto
+   front with UNO for different \tau. Include a benchmarking harness 
+   that records 'tau', the two objectives (risk: 'mu^\top w', and return: 
+   '-mu^\top w'), solve time, optimality gap, and selected assets 
+   to a CSV. Plot the trade-off between risk ('w^\top \Sigma w') and
+   return ('-\mu^\top w') for different values of '\tau'.
    ```
 
 4. Read the plan critically. Don't approve it yet. Look for:
 
-   - Does it specify how `Sigma` is loaded (and validated PSD)?
+   - Does it specify how `Sigma` is loaded (and validated to be PSD)?
    - Does it parameterize `tau` and `K`, or hardcode them?
+   - Does it allow different parameterizations of 'tau'
    - Where will it write the CSV? Is the path configurable?
-   - Does it describe the warm-start mechanism, or just say "warm-start"?
+   - Does it describe how to select UNO's solvers?
 
-5. Save the plan: ask Claude to write it to `plan.md`. Discuss with your neighbor: what one assumption would you have made wrong without the plan?
+5. Save the plan: ask Claude to write it to `plan.md`. Discuss with your neighbor: 
+   - What one assumption would you have made wrong without the plan?
+   - Does the plan provide a reasonable strategy for the plot?
 
 ## Discussion prompts
 
@@ -49,4 +55,5 @@ with $n = 50$ assets and cardinality $K = 8$. Data is in `minlp_seed.py`.
 
 ## Stretch
 
-Re-ask the same prompt but add: `our benchmarking harness must follow the conventions in CLAUDE.md` (write a short CLAUDE.md first specifying figure size, log format, and CSV layout). Compare the two plans.
+Re-ask the same prompt but add: `our benchmarking harness must follow the conventions in CLAUDE.md` 
+(write a short CLAUDE.md first specifying figure size, log format, and CSV layout). Compare the two plans.
