@@ -1,0 +1,551 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+% Macros matching RASC-MeetingNotes.tex
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\proj}{\operatorname{proj}}
+\newcommand{\prox}{\operatorname{prox}}
+\newcommand{\TV}{\mathrm{TV}}
+\newcommand{\amin}{\mathop{\mathrm{argmin}}}
+\newcommand{\mini}{\mathop{\mathrm{minimize}}}
+\newcommand{\stn}{\text{s.t.}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\begin{document}
+
+\begin{center}
+  {\Large\bfseries Proximal-Gradient Residual for the $y$-Block:\\
+  Derivation and Justification of Equation~(9)}
+
+  \medskip
+  {\em A technical note accompanying \texttt{RASC-MeetingNotes.tex}}
+
+  \smallskip
+  Sven Leyffer and Dominic Yang, Argonne National Laboratory
+
+  \smallskip
+  \today
+\end{center}
+
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Motivation and Scope}
+
+The ADMM-Filter algorithm of \texttt{RASC-MeetingNotes.tex} uses a scalar
+\emph{dual infeasibility measure} $\widetilde{\omega}_\rho(x,y,\lambda)$ to
+decide whether an iterate $(x,y)$ is a candidate for filter acceptance and
+for termination (when $\widetilde{\omega}_0 \leq \varepsilon_{\mathrm{opt}}$).
+The design requirement is that $\widetilde{\omega}_\rho = 0$ if and only if
+$(x,y,\lambda)$ is a first-order stationary point of the augmented Lagrangian
+$\mathcal{L}_\rho$ over the feasible set.
+
+The natural candidate---the \emph{projected-gradient residual} from classical
+smooth optimality theory---breaks down because the $y$-block
+of $\mathcal{L}_\rho$ contains the non-smooth graph Total Variation
+$\alpha\,\TV(y)$.
+This note explains:
+\begin{enumerate}
+  \item[(i)] What the projected-gradient residual is and why it cannot be
+             applied directly to the $y$-block (Section~\ref{sec:smooth}).
+  \item[(ii)] How the proximal operator replaces the projection in the
+              non-smooth case and gives the correct fixed-point
+              characterisation (Section~\ref{sec:prox}).
+  \item[(iii)] Why equation~(9) of \texttt{RASC-MeetingNotes.tex} is the
+               correct residual for the $y$-block, with a proof that it
+               vanishes exactly at stationary points (Section~\ref{sec:eq9}).
+  \item[(iv)] How the proximal operator in equation~(9) is computed in
+              practice via the Chambolle--Pock primal-dual algorithm
+              (Section~\ref{sec:computation}).
+  \item[(v)] How the two block residuals combine into
+             $\widetilde{\omega}_\rho$ and the role of the step size $\tau$
+             (Section~\ref{sec:omega}).
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Problem Setup}
+
+Recall the augmented Lagrangian (equation~(2) of \texttt{RASC-MeetingNotes.tex}):
+\begin{equation}\label{eq:aug-lag}
+  \mathcal{L}_\rho(x,y,\lambda)
+  = F(x) + \alpha\,\TV(y)
+    - \lambda^\top(x - y)
+    + \tfrac{\rho}{2}\|x - y\|_2^2,
+\end{equation}
+where $F:\R^n\to\R$ is the smooth structural compliance, $\TV(y) =
+\sum_{(u,v)\in E}|y_u - y_v|$ is the graph total variation over element
+neighbours (non-smooth and non-differentiable), $\lambda\in\R^n$ is the ADMM
+dual variable, and $\rho > 0$ is the penalty parameter.  The feasible set is
+\[
+  \mathcal{X} \times \mathcal{Y}
+  := \bigl\{(x,y): x,y\in[\epsilon,1]^n,\;\mathbf{1}^\top x \leq B,\;
+    \mathbf{1}^\top y \leq B\bigr\}.
+\]
+
+The dual infeasibility $\omega_\rho$ is meant to measure how far $(x,y)$
+is from satisfying the first-order stationarity conditions of
+\[
+  \mini_{(x,y)\in\mathcal{X}\times\mathcal{Y}}\;
+  \mathcal{L}_\rho(x,y,\lambda)
+\]
+for a fixed $\lambda$.  Since the blocks $\mathcal{X}$ and $\mathcal{Y}$
+decouple, it suffices to measure stationarity of each block separately.
+The $x$-block contains only smooth terms and can be handled by a classical
+projected-gradient residual (Section~\ref{sec:smooth}).  The $y$-block is
+non-smooth and requires the proximal extension (Section~\ref{sec:prox}).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The Smooth Case: Projected-Gradient Residual}
+\label{sec:smooth}
+
+\subsection{Projected-gradient residual for smooth constraints}
+
+For a \emph{smooth} function $f:\R^n\to\R$ and a closed convex set $C\subset\R^n$,
+the first-order optimality condition for $\mini_{z\in C} f(z)$ is
+\begin{equation}\label{eq:kkt-smooth}
+  -\nabla f(z^*) \in \mathcal{N}_C(z^*),
+\end{equation}
+where $\mathcal{N}_C(z^*)$ is the normal cone to $C$ at $z^*$.  A classical
+equivalent characterisation is the \emph{projected-gradient fixed-point}:
+for any $\tau > 0$,
+\begin{equation}\label{eq:proj-fp}
+  z^* \;\text{solves}\;\eqref{eq:kkt-smooth}
+  \quad\iff\quad
+  z^* = \proj_C\!\bigl[z^* - \tau\,\nabla f(z^*)\bigr].
+\end{equation}
+This follows immediately from the non-expansive projection: $z^* = \proj_C(v)$
+iff $v - z^* \in \mathcal{N}_C(z^*)$.  See \cite{ParBoy14,Bertsekas99} for
+standard treatments.
+
+The \emph{projected-gradient residual} at an arbitrary point $z$ is
+\begin{equation}\label{eq:proj-res}
+  r_{\mathrm{pg}}(z) := \proj_C\!\bigl[z - \tau\,\nabla f(z)\bigr] - z.
+\end{equation}
+By \eqref{eq:proj-fp}, $r_{\mathrm{pg}}(z^*) = 0$ iff $z^*$ is optimal.
+Since $r_{\mathrm{pg}}$ is Lipschitz continuous in $z$ for smooth $f$, its
+squared norm $\|r_{\mathrm{pg}}(z)\|_2^2$ is a continuous, non-negative
+optimality measure.
+
+\subsection{Application to the $x$-block}
+
+The $x$-block of $\mathcal{L}_\rho$ at fixed $(y,\lambda)$ is:
+\[
+  \mini_{x\in\mathcal{X}}\;
+  \underbrace{F(x) - \lambda^\top x + \tfrac{\rho}{2}\|x - y\|_2^2}_{=:\,h(x)},
+\]
+where $h$ is smooth ($F$ is smooth, the rest is a smooth quadratic).  Its
+gradient is
+\[
+  \nabla_x \mathcal{L}_\rho
+  = \nabla F(x) - \lambda + \rho(x - y),
+\]
+and the $x$-block residual of equation~(8) in \texttt{RASC-MeetingNotes.tex}
+is exactly \eqref{eq:proj-res} applied to $h$ over $\mathcal{X}$:
+\begin{equation}\label{eq:r_x}
+  r_x(x,y,\lambda)
+  := \proj_{\mathcal{X}}\!\bigl[x - \tau\,\nabla_x \mathcal{L}_\rho\bigr] - x.
+\end{equation}
+This is well-defined and $r_x = 0$ iff $x$ satisfies the first-order
+conditions for the $x$-block.
+
+\subsection{Why the projected gradient fails for the $y$-block}
+
+The $y$-block of $\mathcal{L}_\rho$ at fixed $(x,\lambda)$ is:
+\[
+  \mini_{y\in\mathcal{Y}}\;
+  \underbrace{\alpha\,\TV(y)}_{\text{non-smooth}}
+  + \underbrace{\lambda^\top y - \tfrac{\rho}{2}\|y - x\|_2^2 + \mathrm{const}}_{\text{smooth}}.
+\]
+The projected-gradient residual would require $\nabla_y \mathcal{L}_\rho$,
+but $\TV(y)$ is non-differentiable whenever $y_u = y_v$ for some edge
+$(u,v)\in E$---a condition that is \emph{generically satisfied} at an optimal
+design (piece-wise constant density fields lie in the non-differentiable
+region of TV).  Applying the projected gradient here would either require an
+ad-hoc subgradient (whose choice affects the measure and breaks the
+fixed-point property) or ignoring the TV term in the gradient entirely
+(which would give a measure that can be zero at non-stationary points).
+
+The correct generalisation is the \emph{proximal-gradient} extension.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Proximal Operators and the Non-Smooth Fixed-Point}
+\label{sec:prox}
+
+\subsection{Definition of the proximal operator}
+
+For a proper, closed, convex function $\phi:\R^n\to(-\infty,+\infty]$, the
+\emph{proximal operator} with step size $\tau > 0$ is \cite{ParBoy14}:
+\begin{equation}\label{eq:prox-def}
+  \prox_{\tau\phi}(v)
+  := \amin_{z\in\R^n}\;
+    \tau\,\phi(z) + \tfrac{1}{2}\|z - v\|_2^2.
+\end{equation}
+This is a well-defined single-valued map (the objective is strictly convex in
+$z$).  Two key special cases:
+\begin{itemize}
+  \item When $\phi = \iota_C$ (the indicator of a closed convex set $C$),
+    $\prox_{\tau\phi}(v) = \proj_C(v)$.
+  \item When $\phi = 0$, $\prox_{\tau\phi}(v) = v$.
+\end{itemize}
+Hence the proximal operator generalises both the Euclidean projection and the
+identity map \cite{ParBoy14,RyuBoy16}.
+
+\subsection{The proximal fixed-point characterisation}
+
+The following proposition is the non-smooth analogue of \eqref{eq:proj-fp};
+it is the basis for the proximal gradient method \cite{BecTeb09} and is
+proved in many standard references \cite{ParBoy14,Bec17}.
+
+\begin{proposition}[Proximal fixed-point]\label{prop:prox-fp}
+  Let $g:\R^n\to\R$ be convex and $C^1$, and let $h:\R^n\to(-\infty,+\infty]$
+  be proper, closed, and convex.  Define $\phi := h + \iota_C$ for a closed
+  convex set $C$.  For any $\tau > 0$,
+  \begin{equation}\label{eq:prox-fp}
+    z^* \in \amin_{z\in C}\bigl[g(z) + h(z)\bigr]
+    \quad\iff\quad
+    z^* = \prox_{\tau(h + \iota_C)}\!\bigl[z^* - \tau\,\nabla g(z^*)\bigr].
+  \end{equation}
+\end{proposition}
+
+\begin{proof}
+  By the definition of the proximal operator, $z^* = \prox_{\tau\phi}(v)$ iff
+  $v - z^* \in \tau\,\partial\phi(z^*)$ (the subdifferential characterisation
+  of the proximal map; see \cite{ParBoy14} Proposition~2.2).  Setting
+  $v := z^* - \tau\,\nabla g(z^*)$:
+  \begin{align*}
+    &z^* = \prox_{\tau(h+\iota_C)}\!\bigl[z^* - \tau\,\nabla g(z^*)\bigr]\\
+    &\quad\iff\;
+    \bigl(z^* - \tau\nabla g(z^*)\bigr) - z^* \in \tau\,\partial(h + \iota_C)(z^*)\\
+    &\quad\iff\;
+    -\nabla g(z^*) \in \partial h(z^*) + \mathcal{N}_C(z^*),
+  \end{align*}
+  which is exactly the first-order optimality condition for
+  $\mini_{z\in C}[g(z) + h(z)]$:
+  \[
+    0 \in \nabla g(z^*) + \partial h(z^*) + \mathcal{N}_C(z^*). \qedhere
+  \]
+\end{proof}
+
+\begin{remark}
+  The condition \eqref{eq:prox-fp} holds for \emph{any} $\tau > 0$; the
+  choice of $\tau$ affects the magnitude of the residual at non-optimal points
+  but not the location of the zeros.  In \texttt{optimality.py} the default
+  is $\tau = 1$.
+\end{remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Equation~(9): The $y$-Block Proximal-Gradient Residual}
+\label{sec:eq9}
+
+\subsection{Splitting the $y$-block into smooth and non-smooth parts}
+
+Write the $y$-block objective as $g(y) + h(y)$ where
+\begin{align*}
+  g(y) &:= -\lambda^\top y + \tfrac{\rho}{2}\|y - x\|_2^2
+           \quad\text{(smooth, strongly convex in $y$)},\\
+  h(y) &:= \alpha\,\TV(y)
+           \quad\text{(non-smooth, convex)}.
+\end{align*}
+The smooth gradient is (equation~(7) of \texttt{RASC-MeetingNotes.tex}):
+\begin{equation}\label{eq:smooth-grad}
+  \nabla g(y) = \nabla_y \mathcal{L}^{\mathrm{sm}}_\rho(x,y,\lambda)
+  = \lambda + \rho(y - x).
+\end{equation}
+
+\subsection{The residual and its zero-set}
+
+Applying Proposition~\ref{prop:prox-fp} with $C = \mathcal{Y}$,
+$h = \alpha\,\TV$, and the smooth gradient \eqref{eq:smooth-grad}, equation~(9)
+of \texttt{RASC-MeetingNotes.tex} defines the \emph{$y$-block
+proximal-gradient residual}:
+\begin{equation}\label{eq:r_y}
+  r_y(x,y,\lambda)
+  := \prox_{\tau(\alpha\,\TV + \iota_{\mathcal{Y}})}\!\bigl[
+       y - \tau\,\nabla_y \mathcal{L}^{\mathrm{sm}}_\rho(x,y,\lambda)
+     \bigr] - y.
+\end{equation}
+
+\begin{proposition}\label{prop:ry-zero}
+  $r_y(x,y,\lambda) = 0$ if and only if $y$ satisfies the first-order
+  optimality conditions for $\mini_{y\in\mathcal{Y}}
+  \bigl[\alpha\,\TV(y) + g(y)\bigr]$ at fixed $(x,\lambda)$,
+  i.e.\ $y$ minimises the $y$-block of $\mathcal{L}_\rho$.
+\end{proposition}
+\begin{proof}
+  Immediate from Proposition~\ref{prop:prox-fp} with the identifications above.
+\end{proof}
+
+In other words, $r_y$ is an exact optimality certificate for the $y$-block:
+it vanishes precisely at the points where $y$ would be the output of a perfect
+(exact) Chambolle--Pock solve.  At non-optimal iterates it provides a
+continuous, non-negative quantity that the filter algorithm uses to gauge
+distance from dual feasibility.
+
+\subsection{Connection to the classical projected-gradient residual}
+
+When $\tau = 1$ and the non-smooth term is absent ($\alpha = 0$, so
+$h \equiv 0$), the prox in \eqref{eq:r_y} reduces to $\proj_{\mathcal{Y}}$,
+and \eqref{eq:r_y} collapses to the classical projected-gradient residual
+$\proj_{\mathcal{Y}}[y - \nabla g(y)] - y$.  Thus equation~(9) is a strict
+generalisation of the classical form.
+
+The same argument applies to the $x$-block: since $F$ is smooth, the
+projected-gradient residual \eqref{eq:r_x} is recovered from
+Proposition~\ref{prop:prox-fp} with $h \equiv 0$ and $C = \mathcal{X}$.
+Choosing $\tau = 1$ for both blocks then recovers the structure of
+equation~(6) in \texttt{RASC-MeetingNotes.tex} (the original smooth form
+of $\omega_\rho$).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Computing the Proximal Operator via Chambolle--Pock}
+\label{sec:computation}
+
+\subsection{The proximal subproblem}
+
+By definition \eqref{eq:prox-def}, evaluating $r_y$ at a point $y$ requires
+solving
+\begin{equation}\label{eq:prox-problem}
+  z^* = \prox_{\tau(\alpha\,\TV + \iota_{\mathcal{Y}})}(v),
+  \qquad v := y - \tau\,\nabla_y \mathcal{L}^{\mathrm{sm}}_\rho,
+\end{equation}
+which expands to the constrained TV denoising problem:
+\begin{equation}\label{eq:tv-denoise}
+  \mini_{z\in\mathcal{Y}}\;
+  \tau\alpha\,\TV(z) + \tfrac{1}{2}\|z - v\|_2^2.
+\end{equation}
+
+\subsection{Matching the Chambolle--Pock interface}
+
+The module \texttt{graph\_tv.py} solves problems of the form
+\begin{equation}\label{eq:cp-interface}
+  \mini_{z\in\mathcal{Y}}\;
+  \alpha'\,\TV(z) + \sum_v \bigl(a_v\,z_v^2 + b_v\,z_v\bigr),
+\end{equation}
+using the primal-dual algorithm of \cite{ChaPoc11}.  Matching \eqref{eq:tv-denoise}
+with \eqref{eq:cp-interface} via $(1/2)\|z - v\|^2 = (1/2)z^\top z - v^\top z + \mathrm{const}$
+gives:
+\[
+  \alpha' = \tau\alpha,
+  \qquad
+  a_v = \tfrac{1}{2}\;\forall v,
+  \qquad
+  b_v = -v_v\;\forall v,
+\]
+which is exactly the call in \texttt{optimality.py} (lines 111--122):
+\begin{verbatim}
+  v = y - tau * grad_y_L_smooth
+  y_step, _ = chambolle_pock_graph_tv(
+      n_vertices=n, edges=edges,
+      a=0.5 * np.ones(n),
+      b=-v,              # b_v = -v_v
+      budget=budget,
+      alpha=tau * alpha, # alpha' = tau * alpha
+      x_lo=x_lo, ...
+  )
+  r_y = y_step - y
+\end{verbatim}
+
+\subsection{The Chambolle--Pock algorithm for TV subproblems}
+
+The Chambolle--Pock algorithm \cite{ChaPoc11} is a first-order primal-dual
+method for problems of the form $\min_z G(z) + H(Kz)$, where $K$ is a linear
+operator and $G,H$ are proper closed convex functions.  For the TV denoising
+problem \eqref{eq:tv-denoise}, set $K$ to be the (signed) edge-incidence
+matrix of the mesh graph (so that $(Kz)_{(u,v)} = z_u - z_v$), $G(z) =
+(1/2)\|z-v\|^2 + \iota_{\mathcal{Y}}(z)$, and $H(w) = \tau\alpha\|w\|_1$.
+Then the algorithm alternates:
+\begin{enumerate}
+  \item \emph{Primal step}: $z^{(t+1)} = \prox_{\sigma G}(z^{(t)} - \sigma K^\top w^{(t)})$,
+    which is a box-and-budget projection followed by a quadratic solve
+    (closed form via the bisection approach of \texttt{projection.py}).
+  \item \emph{Dual step}: $w^{(t+1)} = \prox_{\sigma H^*}(w^{(t)} + \sigma K z^{(t+1)})$,
+    where $H^*$ denotes the \emph{convex conjugate} (Fenchel conjugate) of $H$.
+    Since $H(w) = \tau\alpha\|w\|_1$, its conjugate is
+    $H^*(s) = \sup_w\{s^\top w - \tau\alpha\|w\|_1\} = \iota_{\|s\|_\infty \leq \tau\alpha}(s)$,
+    the indicator of the $\ell^\infty$ ball of radius $\tau\alpha$.
+    Hence $\prox_{\sigma H^*} = \proj_{\|s\|_\infty \leq \tau\alpha}$,
+    which clips the edge flows componentwise to $[-\tau\alpha, \tau\alpha]$.
+\end{enumerate}
+Step sizes satisfy $\sigma\tau \leq 1/\|K\|^2$ to guarantee convergence
+\cite{ChaPoc11}; in \texttt{graph\_tv.py} they are chosen as $\sigma = \tau_{\mathrm{cp}}
+= 1/\sqrt{2d_{\max} + n}$ where $d_{\max}$ is the maximum degree of the mesh
+graph, since $\|K\|^2 \leq 2d_{\max}$ for a graph incidence matrix.
+
+\begin{remark}[Warm starting]
+  The Chambolle--Pock call in \texttt{optimality.py} is warm-started at
+  $z^{(0)} = y$, since $y$ is typically close to the solution of the prox
+  subproblem.  This reduces the inner iteration count substantially at later
+  outer iterations when $y \approx y^*$.
+\end{remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The Combined Measure $\widetilde{\omega}_\rho$ and the Role of $\tau$}
+\label{sec:omega}
+
+\subsection{Definition}
+
+Combining the $x$-block residual \eqref{eq:r_x} and the $y$-block residual
+\eqref{eq:r_y}, the proximal-gradient dual infeasibility (equation~(10) of
+\texttt{RASC-MeetingNotes.tex}) is:
+\begin{equation}\label{eq:omega-prox}
+  \widetilde{\omega}_\rho(x,y,\lambda)
+  := \|r_x(x,y,\lambda)\|_2^2 + \|r_y(x,y,\lambda)\|_2^2.
+\end{equation}
+By Propositions~\ref{prop:ry-zero} and the analogous statement for the
+$x$-block, $\widetilde{\omega}_\rho = 0$ iff $(x,y)$ is simultaneously
+stationary for both blocks of $\mathcal{L}_\rho$ at fixed $\lambda$, i.e.\
+$(x,y)$ is a saddle point of $\mathcal{L}_\rho$.
+
+\subsection{The identity relating $\widetilde{\omega}_\rho$ and $\widetilde{\omega}_0$}
+
+Let $\lambda^{k+1} = \lambda^k + \rho(y - x)$ be the standard ADMM multiplier
+update.  A direct computation shows that the smooth gradient at the new
+multiplier equals the penalised gradient at the old multiplier:
+\begin{align*}
+  \nabla_x \mathcal{L}^{\mathrm{sm}}_0\big|_{\lambda^{k+1}}
+    &= \nabla F(x) - \lambda^{k+1}
+     = \nabla F(x) - \lambda^k - \rho(y-x)
+     = \nabla_x \mathcal{L}^{\mathrm{sm}}_\rho\big|_{\lambda^k},\\
+  \nabla_y \mathcal{L}^{\mathrm{sm}}_0\big|_{\lambda^{k+1}}
+    &= \lambda^{k+1}
+     = \lambda^k + \rho(y-x)
+     = \nabla_y \mathcal{L}^{\mathrm{sm}}_\rho\big|_{\lambda^k}.
+\end{align*}
+Both blocks see the same gradient, so the residuals are identical:
+\begin{equation}\label{eq:identity}
+  \widetilde{\omega}_\rho(x,y,\lambda^k)
+  = \widetilde{\omega}_0(x,y,\lambda^{k+1}).
+\end{equation}
+This is the identity cited in \S\ref{subsec:omega-zero} of
+\texttt{RASC-MeetingNotes.tex} and justifies evaluating the post-multiplier-update
+convergence test with $\rho = 0$: the $\varepsilon_{\mathrm{opt}}$-test
+targets $\widetilde{\omega}_0$, the unpenalised first-order error, which by
+\eqref{eq:identity} is available for free from the last inner-loop
+$\widetilde{\omega}_\rho$ value.
+
+\subsection{Role of the step size $\tau$}
+
+The step size $\tau > 0$ in equations~(8)--(9) and \eqref{eq:omega-prox} is
+a free parameter.  Its choice does not affect \emph{where} the residuals
+vanish (the optimal set is fixed by the problem, not by $\tau$), but it
+scales the residuals at non-optimal points.  Two considerations:
+\begin{itemize}
+  \item With $\tau = 1$, equation~(8) recovers the classical projected-gradient
+    residual on the $x$-block and equation~(9) matches the structure of the
+    original $\omega_\rho$ (equation~(6)) for the smooth case.  This is the
+    default in \texttt{optimality.py}.
+  \item A penalty-adaptive choice such as $\tau = 1/\rho$ or $\tau = 1/(\rho +
+    L_F)$ (where $L_F$ is the Lipschitz constant of $\nabla F$) would
+    normalise the magnitude of $\widetilde{\omega}_\rho$ across the
+    $\rho$-doublings in the restoration phase and might improve the filter
+    acceptance constants.  This is noted as a known issue in
+    \texttt{STATUS.md} (\S ``Known issues'', $\tau = 1.0$ item).
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Summary}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Block} & \textbf{Smoothness} & \textbf{Residual at point $z$}\\
+\midrule
+$x$-block (eq.~(8)) & $F$ smooth &
+  $r_x = \proj_{\mathcal{X}}\bigl[x - \tau\nabla_x \mathcal{L}_\rho\bigr] - x$ \\[4pt]
+$y$-block (eq.~(9)) & $\alpha\,\TV$ non-smooth &
+  $r_y = \prox_{\tau(\alpha\TV+\iota_{\mathcal{Y}})}\bigl[y-\tau\nabla_y \mathcal{L}^{\mathrm{sm}}_\rho\bigr] - y$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\medskip\noindent
+Equation~(9) is the correct non-smooth generalisation because
+(a) its zero-set coincides exactly with the first-order stationary points of
+the $y$-block (Proposition~\ref{prop:ry-zero}), (b) it reduces to the
+projected-gradient residual when the TV term is absent, (c) the proximal
+operator it requires is already solved by the existing Chambolle--Pock
+routine with a simple reparameterisation ($a_v = 1/2$, $b_v = -v_v$,
+$\alpha' = \tau\alpha$), and (d) the identity~\eqref{eq:identity} provides
+the post-multiplier-update convergence measure for free, enabling the
+$\widetilde{\omega}_0$ correction of \S\ref{subsec:omega-zero} in
+\texttt{RASC-MeetingNotes.tex}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{References}
+
+\begin{thebibliography}{9}
+
+\bibitem{Bertsekas99}
+D.~P. Bertsekas.
+\newblock {\em Nonlinear Programming}, 2nd ed.
+\newblock Athena Scientific, Belmont, MA, 1999.
+
+\bibitem{BecTeb09}
+A.~Beck and M.~Teboulle.
+\newblock A fast iterative shrinkage-thresholding algorithm for linear inverse
+  problems.
+\newblock {\em SIAM Journal on Imaging Sciences}, 2(1):183--202, 2009.
+\newblock \href{https://doi.org/10.1137/080716542}{doi:10.1137/080716542}.
+
+\bibitem{Bec17}
+A.~Beck.
+\newblock {\em First-Order Methods in Optimization}.
+\newblock SIAM, Philadelphia, PA, 2017.
+\newblock \href{https://doi.org/10.1137/1.9781611974997}%
+  {doi:10.1137/1.9781611974997}.
+
+\bibitem{BoydADMM11}
+S.~Boyd, N.~Parikh, E.~Chu, B.~Peleato, and J.~Eckstein.
+\newblock Distributed optimization and statistical learning via the alternating
+  direction method of multipliers.
+\newblock {\em Foundations and Trends in Machine Learning}, 3(1):1--122, 2011.
+\newblock \href{https://doi.org/10.1561/2200000016}{doi:10.1561/2200000016}.
+
+\bibitem{Cha04}
+A.~Chambolle.
+\newblock An algorithm for total variation minimization and applications.
+\newblock {\em Journal of Mathematical Imaging and Vision}, 20(1--2):89--97,
+  2004.
+\newblock \href{https://doi.org/10.1023/B:JMIV.0000011325.36760.1e}{doi:10.1023/B:JMIV.0000011325.36760.1e}.
+
+\bibitem{ChaPoc11}
+A.~Chambolle and T.~Pock.
+\newblock A first-order primal-dual algorithm for convex problems with
+  applications to imaging.
+\newblock {\em Journal of Mathematical Imaging and Vision}, 40(1):120--145,
+  2011.
+\newblock \href{https://doi.org/10.1007/s10851-010-0251-1}{doi:10.1007/s10851-010-0251-1}.
+
+\bibitem{FleybLey02}
+R.~Fletcher and S.~Leyffer.
+\newblock Nonlinear programming without a penalty function.
+\newblock {\em Mathematical Programming}, 91(2):239--269, 2002.
+\newblock \href{https://doi.org/10.1007/s101070100244}{doi:10.1007/s101070100244}.
+
+\bibitem{ParBoy14}
+N.~Parikh and S.~Boyd.
+\newblock Proximal algorithms.
+\newblock {\em Foundations and Trends in Optimization}, 1(3):127--239, 2014.
+\newblock \href{https://doi.org/10.1561/2400000003}{doi:10.1561/2400000003}.
+
+\bibitem{RyuBoy16}
+E.~K. Ryu and S.~Boyd.
+\newblock A primer on monotone operator methods.
+\newblock {\em Applied and Computational Mathematics}, 15(1):3--43, 2016.
+
+\end{thebibliography}
+
+\end{document}

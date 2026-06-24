@@ -1,0 +1,181 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb}
+\usepackage{enumitem}
+\usepackage{mdframed}
+\usepackage{xcolor}
+
+% Convenience macros
+\newcommand{\clip}{\operatorname{clip}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\kw}[1]{\textbf{#1}}          % algorithm keyword
+\newcommand{\cmt}[1]{\textcolor{gray}{\(\triangleright\) #1}}  % comment
+
+% Indented list style for algorithm body
+\newlist{algolist}{enumerate}{4}
+\setlist[algolist]{
+  label=\arabic*:,
+  leftmargin=2.5em,
+  labelsep=0.5em,
+  itemsep=2pt,
+  parsep=0pt,
+  topsep=4pt,
+}
+\newlist{algoinner}{itemize}{4}
+\setlist[algoinner]{
+  label={},
+  leftmargin=2em,
+  itemsep=1pt,
+  parsep=0pt,
+  topsep=2pt,
+}
+
+\begin{document}
+
+\section*{Chambolle--Pock for Graph Total Variation}
+
+\subsection*{Problem}
+
+Let $G = (V, E)$ be an undirected graph. We solve
+\begin{equation}
+  \min_{\substack{x \in [0,1]^{|V|} \\ \mathbf{1}^\top x \leq B}}
+  \sum_{v \in V} f_v(x_v)
+  + \sum_{(u,v) \in E} |x_u - x_v|,
+  \label{eq:problem}
+\end{equation}
+where each $f_v(x_v) = a_v x_v^2 + b_v x_v$ is a strictly convex quadratic
+($a_v > 0$), and $B \geq 0$ is a budget parameter (omit the constraint by
+setting $B = |V|$).
+
+\subsection*{Saddle-point reformulation}
+
+Let $D \in \R^{|E| \times |V|}$ be the signed edge-incidence matrix (orient
+each edge $e = (u,v)$ arbitrarily; set $D_{eu} = +1$, $D_{ev} = -1$).
+Define the augmented operator and functions
+\[
+  K = \begin{pmatrix} D \\ \mathbf{1}^\top \end{pmatrix},
+  \qquad
+  F(x) = \sum_{v} f_v(x_v) + \iota_{[0,1]^{|V|}}(x),
+  \qquad
+  G(z_1, z_2) = \|z_1\|_1 + \iota_{(-\infty,\, B]}(z_2),
+\]
+so that~\eqref{eq:problem} is equivalent to $\min_x F(x) + G(Kx)$, with
+dual variables $y_1 \in [-1,1]^{|E|}$ and $y_2 \in [0,\infty)$.
+
+\subsection*{Proximal operators}
+
+\paragraph{Dual proximal (TV term).}
+$\operatorname{prox}_{\sigma G_1^*}$ is projection onto $[-1,1]^{|E|}$:
+\[
+  \bigl[\operatorname{prox}_{\sigma G_1^*}(p)\bigr]_e
+  = \clip(p_e,\,-1,\,1).
+\]
+
+\paragraph{Dual proximal (budget constraint).}
+With conjugate $G_2^*(s) = Bs + \iota_{s \geq 0}(s)$:
+\[
+  \operatorname{prox}_{\sigma G_2^*}(p)
+  = \max\bigl(0,\; p - \sigma B\bigr).
+\]
+
+\paragraph{Primal proximal.}
+$F$ separates over vertices; each per-vertex subproblem has the closed-form
+solution
+\[
+  \bigl[\operatorname{prox}_{\tau F}(w)\bigr]_v
+  = \clip\!\left(\frac{w_v - \tau b_v}{2\tau a_v + 1},\;0,\;1\right).
+\]
+
+\subsection*{Step-size condition}
+
+Choose $\tau, \sigma > 0$ with $\tau\sigma\|K\|_2^2 \leq 1$.
+Using the bound
+$\|K\|_2^2 = \lambda_{\max}(D^\top D + \mathbf{1}\mathbf{1}^\top)
+            \leq 2d_{\max} + |V|$,
+the choice
+\[
+  \tau = \sigma = \frac{1}{\sqrt{2d_{\max} + |V|}}
+\]
+is sufficient, where $d_{\max} = \max_{v \in V} \deg(v)$.
+
+\subsection*{Algorithm}
+
+\begin{mdframed}[
+  linewidth=0.8pt,
+  innertopmargin=8pt,
+  innerbottommargin=8pt,
+  innerrightmargin=10pt,
+  innerleftmargin=10pt,
+]
+\textbf{Algorithm:} Chambolle--Pock for Graph TV~\eqref{eq:problem}
+
+\medskip
+\textbf{Input:} Graph $(V,E)$;\; $\{a_v, b_v\}_{v \in V}$;\; budget $B$;\;
+step sizes $\tau,\sigma$ with $\tau\sigma\|K\|_2^2 \leq 1$;\;
+tolerance $\varepsilon > 0$.
+
+\smallskip
+\textbf{Output:} Optimal $x^*$.
+
+\medskip\hrule\medskip
+
+\begin{algolist}
+  \item \textbf{Initialise}\;
+    $x^0 \leftarrow \tfrac{1}{2}\mathbf{1}$,\quad
+    $y_1^0 \leftarrow \mathbf{0} \in \R^{|E|}$,\quad
+    $y_2^0 \leftarrow 0$,\quad
+    $\bar x^0 \leftarrow x^0$
+
+  \item \kw{for} $k = 0, 1, 2, \dotsc$ \kw{do}
+
+  \begin{algoinner}
+    \item \cmt{Dual update}
+    \item \kw{for} each edge $e = (u,v) \in E$ \kw{do}
+    \begin{algoinner}
+      \item $y_{1,e}^{k+1} \leftarrow
+        \clip\!\left(
+          y_{1,e}^{k} + \sigma\bigl(\bar x_u^k - \bar x_v^k\bigr),\;
+          -1,\; 1
+        \right)$
+        \hfill\cmt{project TV dual onto $[-1,1]$}
+    \end{algoinner}
+    \item \kw{end for}
+    \item $y_2^{k+1} \leftarrow
+      \max\!\left(0,\;
+        y_2^k + \sigma\Bigl(\displaystyle\sum_{v \in V} \bar x_v^k - B\Bigr)
+      \right)$
+      \hfill\cmt{project budget dual onto $[0,\infty)$}
+
+    \medskip
+    \item \cmt{Primal update}
+    \item \kw{for} each vertex $v \in V$ \kw{do}
+    \begin{algoinner}
+      \item $r_v \leftarrow
+        \displaystyle
+        \sum_{e = (v,\,\cdot\,)} y_{1,e}^{k+1}
+        \;-\;
+        \sum_{e = (\,\cdot\,,v)} y_{1,e}^{k+1}$
+        \hfill\cmt{divergence $(D^\top y_1^{k+1})_v$}
+      \item $w_v \leftarrow x_v^k - \tau r_v - \tau y_2^{k+1}$
+      \item $x_v^{k+1} \leftarrow
+        \clip\!\left(
+          \dfrac{w_v - \tau b_v}{2\tau a_v + 1},\; 0,\; 1
+        \right)$
+    \end{algoinner}
+    \item \kw{end for}
+
+    \medskip
+    \item \cmt{Extrapolation}
+    \item $\bar x^{k+1} \leftarrow 2x^{k+1} - x^k$
+
+    \medskip
+    \item \kw{if} $\|x^{k+1} - x^k\|_\infty < \varepsilon$\;
+          \kw{then} \textbf{break} \kw{end if}
+  \end{algoinner}
+
+  \item \kw{end for}
+
+  \item \textbf{return} $x^{k+1}$
+\end{algolist}
+\end{mdframed}
+
+\end{document}

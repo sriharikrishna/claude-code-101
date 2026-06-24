@@ -1,0 +1,245 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{enumitem}
+\usepackage{mdframed}
+\usepackage{xcolor}
+
+\newcommand{\clip}{\operatorname{clip}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\kw}[1]{\textbf{#1}}
+\newcommand{\cmt}[1]{\textcolor{gray}{\(\triangleright\) #1}}
+
+\newlist{algolist}{enumerate}{4}
+\setlist[algolist]{
+  label=\arabic*:,
+  leftmargin=2.5em,
+  labelsep=0.5em,
+  itemsep=2pt,
+  parsep=0pt,
+  topsep=4pt,
+}
+\newlist{algoinner}{itemize}{4}
+\setlist[algoinner]{
+  label={},
+  leftmargin=2em,
+  itemsep=1pt,
+  parsep=0pt,
+  topsep=2pt,
+}
+
+\begin{document}
+
+\section*{Successive Reciprocal Approximation}
+
+\subsection*{Problem}
+
+Let $n = |V|$. We solve
+\begin{equation}
+  \min_{\substack{x \in (0,1]^n \\ \mathbf{1}^\top x \leq B}}
+  \;F(x) + \sum_{v=1}^n f_v(x_v),
+  \qquad f_v(x_v) = a_v x_v^2 + b_v x_v,
+  \label{eq:problem}
+\end{equation}
+where $F : \R^n \to \R$ is a smooth (possibly nonlinear) function,
+each $f_v$ is a strictly convex quadratic ($a_v > 0$), and $B > 0$ is a
+budget.
+
+\subsection*{Reciprocal approximation of $F$}
+
+Given a current iterate $\hat x \in (0,1]^n$, we approximate $F$ by
+\begin{equation}
+  F(x) \;\approx\; F(\hat x)
+    + \sum_{v=1}^n c_v \!\left(\frac{1}{x_v} - \frac{1}{\hat x_v}\right),
+  \label{eq:approx}
+\end{equation}
+where the coefficients $c_v$ are chosen so that the approximation matches the
+first-order derivatives of $F$ at $\hat x$.  Differentiating~\eqref{eq:approx}
+with respect to $x_v$ and equating to $\nabla_v F(\hat x)$ gives
+\begin{equation}
+  c_v = -\hat x_v^2\,\nabla_v F(\hat x).
+  \label{eq:cv}
+\end{equation}
+When $\nabla_v F(\hat x) \leq 0$ we have $c_v \geq 0$, making $c_v/x_v$
+convex; otherwise the approximation is concave in $x_v$ and a linear
+approximation should be used for that coordinate instead.
+
+\subsection*{Approximating subproblem}
+
+Substituting~\eqref{eq:approx} into~\eqref{eq:problem} and discarding
+constants in $\hat x$, the subproblem is
+\begin{equation}
+  \min_{\substack{x \in (0,1]^n \\ \mathbf{1}^\top x \leq B}}
+  \sum_{v=1}^n g_v(x_v),
+  \qquad
+  g_v(x_v) = \frac{c_v}{x_v} + a_v x_v^2 + b_v x_v.
+  \label{eq:sub}
+\end{equation}
+The Lagrangian with multiplier $\lambda \geq 0$ for the budget constraint is
+\[
+  \mathcal{L}(x,\lambda,\mu)
+  = \sum_v g_v(x_v)
+    + \lambda\!\left(\sum_v x_v - B\right)
+    + \sum_v \mu_v(x_v - 1),
+  \qquad \lambda,\mu_v \geq 0.
+\]
+
+\paragraph{KKT stationarity.}
+For each vertex $v$, setting $\partial\mathcal{L}/\partial x_v = 0$ gives
+\[
+  -\frac{c_v}{x_v^2} + 2a_v x_v + b_v + \lambda + \mu_v = 0.
+\]
+
+\paragraph{Case 1 — interior, $x_v^* \in (0,1)$.}
+Here $\mu_v = 0$, so multiplying by $x_v^2 > 0$ yields the \emph{cubic}
+\begin{equation}
+  2a_v\, x_v^3 + (b_v + \lambda)\,x_v^2 - c_v = 0.
+  \label{eq:cubic}
+\end{equation}
+For $a_v > 0$ and $c_v > 0$ this cubic has exactly one positive real root.
+
+\paragraph{Case 2 — upper bound active, $x_v^* = 1$.}
+Here $\mu_v = c_v - 2a_v - b_v - \lambda \geq 0$, i.e.\
+$x_v^* = 1$ if and only if $g_v'(1) + \lambda \leq 0$.
+
+\paragraph{Complementary slackness.}
+$\lambda \geq 0$ and $\lambda\!\left(\sum_v x_v^* - B\right) = 0$.
+
+\subsection*{Solving the subproblem}
+
+For fixed $\lambda$, the optimal $x_v^*(\lambda)$ is obtained by finding
+the unique positive root $\tilde x_v(\lambda)$ of~\eqref{eq:cubic} and
+clipping:
+\[
+  x_v^*(\lambda) = \clip\!\left(\tilde x_v(\lambda),\; \varepsilon,\; 1\right).
+\]
+The aggregate $\sigma(\lambda) = \sum_v x_v^*(\lambda)$ is continuous and
+strictly decreasing in $\lambda$, so the optimal $\lambda^*$ is found by
+scalar bisection:
+\[
+  \lambda^* = \begin{cases}
+    0 & \text{if } \sigma(0) \leq B, \\
+    \text{root of } \sigma(\lambda) = B & \text{otherwise.}
+  \end{cases}
+\]
+
+\paragraph{Newton solve for the cubic.}
+The cubic $h(t) = 2a_v t^3 + (b_v+\lambda)t^2 - c_v$ has a local minimum at
+$t^* = \max\!\left(-({b_v+\lambda})/({3a_v}),\,0\right)$ with $h(t^*) < 0$.
+Newton's method started from any $t_0 > t^*$ converges monotonically to the
+unique positive root $\tilde x_v$, since $h$ is strictly increasing on
+$(t^*, \infty)$.  A safe starting point is
+\[
+  t_0 = \max\!\left(\left(\frac{c_v}{2a_v}\right)^{1/3},\; 2t^*\right).
+\]
+
+\newpage
+\subsection*{Algorithms}
+
+\begin{mdframed}[linewidth=0.8pt, innertopmargin=8pt, innerbottommargin=8pt,
+                 innerrightmargin=10pt, innerleftmargin=10pt]
+\textbf{Algorithm 1:} Newton solve for the cubic~\eqref{eq:cubic}
+
+\medskip
+\textbf{Input:} $a_v > 0$,\; $\beta = b_v + \lambda$,\; $c_v > 0$,\;
+tolerance $\varepsilon_{\mathrm{N}} > 0$.\\
+\textbf{Output:} Unique positive root $\tilde x_v$ of
+$2a_v t^3 + \beta t^2 - c_v = 0$.
+
+\medskip\hrule\medskip
+
+\begin{algolist}
+  \item $t^* \leftarrow \max\!\left(-\beta/(3a_v),\; 0\right)$
+  \item $t \leftarrow \max\!\left((c_v / 2a_v)^{1/3},\; 2t^* + \varepsilon_{\mathrm{N}}\right)$
+  \item \kw{repeat}
+  \begin{algoinner}
+    \item $h  \leftarrow 2a_v t^3 + \beta t^2 - c_v$
+    \item $h' \leftarrow 6a_v t^2 + 2\beta t$
+    \item $t  \leftarrow \max\!\left(t - h/h',\; \varepsilon_{\mathrm{N}}\right)$
+      \hfill\cmt{Newton step, safeguarded to stay positive}
+  \end{algoinner}
+  \item \kw{until} $|h| \leq \varepsilon_{\mathrm{N}}$
+  \item \textbf{return} $t$
+\end{algolist}
+\end{mdframed}
+
+\bigskip
+
+\begin{mdframed}[linewidth=0.8pt, innertopmargin=8pt, innerbottommargin=8pt,
+                 innerrightmargin=10pt, innerleftmargin=10pt]
+\textbf{Algorithm 2:} Solve subproblem~\eqref{eq:sub} via bisection on
+$\lambda$
+
+\medskip
+\textbf{Input:} $\{a_v, b_v, c_v\}_{v=1}^n$;\; budget $B$;\;
+lower bound $\varepsilon > 0$;\; tolerance $\varepsilon_\lambda > 0$.\\
+\textbf{Output:} Optimal $x^*$ and dual variable $\lambda^*$.
+
+\medskip\hrule\medskip
+
+\begin{algolist}
+  \item \kw{for} each $v$ \kw{do}\;
+    $x_v^*(0) \leftarrow \clip\!\left(\tilde x_v(0),\,\varepsilon,\,1\right)$
+    \hfill\cmt{solve cubic with $\lambda=0$}
+  \item \kw{if} $\sum_v x_v^*(0) \leq B$ \kw{then return} $x^*(0)$,
+    $\lambda^* \leftarrow 0$ \kw{end if}
+  \item \cmt{Exponential search for upper bracket}
+  \item $\lambda_{\mathrm{hi}} \leftarrow 1$
+  \item \kw{while} $\sum_v x_v^*(\lambda_{\mathrm{hi}}) > B$ \kw{do}\;
+    $\lambda_{\mathrm{hi}} \leftarrow 2\,\lambda_{\mathrm{hi}}$\;
+    \kw{end while}
+  \item \cmt{Bisection on $[\,0,\,\lambda_{\mathrm{hi}}\,]$}
+  \item $\lambda_{\mathrm{lo}} \leftarrow 0$
+  \item \kw{while} $\lambda_{\mathrm{hi}} - \lambda_{\mathrm{lo}} >
+    \varepsilon_\lambda$ \kw{do}
+  \begin{algoinner}
+    \item $\lambda_{\mathrm{mid}} \leftarrow
+      (\lambda_{\mathrm{lo}} + \lambda_{\mathrm{hi}})/2$
+    \item \kw{if} $\sum_v x_v^*(\lambda_{\mathrm{mid}}) > B$ \kw{then}\;
+      $\lambda_{\mathrm{lo}} \leftarrow \lambda_{\mathrm{mid}}$\;
+      \kw{else}\; $\lambda_{\mathrm{hi}} \leftarrow \lambda_{\mathrm{mid}}$\;
+      \kw{end if}
+  \end{algoinner}
+  \item \kw{end while}
+  \item $\lambda^* \leftarrow (\lambda_{\mathrm{lo}} + \lambda_{\mathrm{hi}})/2$
+  \item \textbf{return} $x^*(\lambda^*)$,\; $\lambda^*$
+\end{algolist}
+\end{mdframed}
+
+\bigskip
+
+\begin{mdframed}[linewidth=0.8pt, innertopmargin=8pt, innerbottommargin=8pt,
+                 innerrightmargin=10pt, innerleftmargin=10pt]
+\textbf{Algorithm 3:} Successive reciprocal approximation for~\eqref{eq:problem}
+
+\medskip
+\textbf{Input:} Oracle for $(F(\hat x),\,\nabla F(\hat x))$;\;
+$\{a_v, b_v\}_{v=1}^n$;\; budget $B$;\;
+initial point $x^0 \in (0,1]^n$ with $\mathbf{1}^\top x^0 \leq B$;\;
+tolerance $\varepsilon > 0$.\\
+\textbf{Output:} Approximate solution $x^*$.
+
+\medskip\hrule\medskip
+
+\begin{algolist}
+  \item \kw{for} $k = 0, 1, 2, \ldots$ \kw{do}
+  \begin{algoinner}
+    \item \cmt{Compute gradient of $F$ at current iterate}
+    \item Evaluate $F(x^k)$ and $\nabla F(x^k)$
+    \medskip
+    \item \cmt{Form reciprocal approximation coefficients~\eqref{eq:cv}}
+    \item \kw{for} each $v$ \kw{do}\;
+      $c_v \leftarrow -(x_v^k)^2\,\nabla_v F(x^k)$\;
+      \kw{end for}
+    \medskip
+    \item \cmt{Solve approximating subproblem (Algorithm~2)}
+    \item $x^{k+1} \leftarrow \text{SolveSubproblem}(\{a_v, b_v, c_v\}, B)$
+    \medskip
+    \item \kw{if} $\|x^{k+1} - x^k\|_\infty < \varepsilon$\;
+          \kw{then break end if}
+  \end{algoinner}
+  \item \kw{end for}
+  \item \textbf{return} $x^{k+1}$
+\end{algolist}
+\end{mdframed}
+
+\end{document}

@@ -1,0 +1,595 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{mathtools}
+\usepackage[ruled, linesnumbered, vlined, algo2e]{algorithm2e}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}  % \sout{} for strikethrough; normalem keeps \emph italic
+
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\bc}{\mathbf{c}}
+\newcommand{\proj}{\operatorname{proj}}
+\newcommand{\TV}{\mathrm{TV}}
+\newcommand{\myvec}[1]{\left(\begin{array}{c} #1 \end{array}\right)}
+\newcommand{\amin}{\mathop{\mbox{argmin}}}
+\newcommand{\mini}{\mathop{\mbox{minimize}}}
+\newcommand{\stn}{\text{s.t.}}
+
+\begin{document}
+
+\begin{center}
+  {\Large\bfseries ADMM Filter for TV-Regularized Compliance Minimisation}
+
+  \medskip
+  {\em Sven Leyffer and Dominic Yang}, Argonne National Laboratory
+
+  \smallskip
+  \today
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Compliance Minimisation with TV Regularisation}
+
+Problem statement:
+\begin{equation}\label{eq:TopoOpt}
+  \min_{\substack{x \in [\epsilon,1]^n \\ \mathbf{1}^\top x \leq B}}
+  F(x) + \alpha \cdot \TV(x)
+\end{equation}
+where $F(x)$ is \textbf{structural compliance} on a 2-D Q4 finite-element mesh,
+$\TV(x) = \sum_{(u,v)\in E}|x_u - x_v|$ is \textbf{graph total variation}
+over element neighbours, and $\alpha > 0$ trades off compliance against
+spatial regularity.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{ADMM Splitting}
+
+Introduce copy variables $y = x$ and define the \textbf{augmented Lagrangian}:
+\begin{equation}
+  \mathcal{L}_\rho(x, y, \lambda)
+  = F(x) + \alpha\,\TV(y) - \lambda^T(x - y) + \frac{\rho}{2}\|x - y\|_2^2
+\end{equation}
+for penalty parameter, $\rho>0$ that will be adjusted to ensure $x=y$ at the solution.
+
+For a suitable penalty parameter, $\hat{\rho}>0$, and multiplier estimate, $\hat{\lambda}$, Problem \eqref{eq:TopoOpt} is equivalent to the minimization of the augmented Lagrangian:
+\begin{equation}\label{eq:OptAugLag}
+  \mini_{x,y} \; \mathcal{L}_{\hat{\rho}}(x, y, \hat{\lambda})
+  \quad \stn \; x\in[\epsilon,1]^n,\; \sum x_v \leq B, \;
+  y\in[\epsilon,1]^n,\; \sum y_v \leq B.
+\end{equation}
+
+\medskip
+To solve \eqref{eq:TopoOpt} we now apply the following \textbf{ADMM splitting}:
+
+\medskip
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Step} & \textbf{Update} & \textbf{Solver} \\
+\midrule
+\textbf{x-update} &
+  $\displaystyle\min_{\substack{x\in[\epsilon,1]^n \\ \sum x_v \leq B}}
+    F(x) - \lambda^T \left( x - \hat{y} \right) + \dfrac{\rho}{2}\|x - \hat{y}\|^2$ &
+  Reciprocal approximation \\[14pt]
+\textbf{y-update} &
+  $\displaystyle\min_{\substack{y\in[\epsilon,1]^n \\ \sum y_v \leq B}}
+    \alpha\,\TV(y) - \lambda^T \left( \hat{x} - y \right) + \dfrac{\rho}{2}\|y - \hat{x}\|^2$ &
+  Chambolle--Pock \\[14pt]
+\textbf{dual} &
+  $\lambda \leftarrow \lambda + \rho(y - x)$ &
+  Closed form \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Filter Method for Steering the Penalty Parameter}
+
+We define a filter method that modifies the ADMM spliting method from above.
+
+\subsection{Primal/Dual Infeasibility and Filter Entries}
+
+We denote the feasible set of \eqref{eq:OptAugLag} as
+\begin{equation}
+  {\cal X} \times {\cal Y} := \left\{ (x,y) \; : \; x\in[\epsilon,1]^n,\; \sum x_v \leq B, \;
+  y\in[\epsilon,1]^n,\; \sum y_v \leq B.\right\}
+\end{equation}
+and we define primal infeasibility, $\eta$, and dual infeasibility, $\omega$:
+\begin{align}
+  \eta(x,y) &:= \|x-y\|_2^2 \label{eq:eta}\\[4pt]
+  \omega_{\rho}(x,y,\lambda) &:= \left\|\proj_{\mathcal{X}\times{\cal Y}}\!\left[\myvec{x \\ y} - \nabla_{x,y} \mathcal{L}_\rho(x,y,\lambda)\right] - \myvec{x \\ y}\right\|_2^2. \label{eq:omega}
+\end{align}
+
+\medskip
+\noindent\textbf{Proximal-gradient extension for the non-smooth TV term.}
+The projected-gradient form \eqref{eq:omega} requires $\mathcal{L}_\rho$ to be smooth in $(x,y)$, but the $y$-block contains the non-smooth term $\alpha\,\TV(y)$. We therefore replace the $y$-component of \eqref{eq:omega} by a \emph{proximal}-gradient residual while keeping the smooth $x$-component as before. Define the smooth part of the $y$-gradient,
+\begin{equation}\label{eq:gradL-smooth}
+  \nabla_y \mathcal{L}^{\mathrm{sm}}_\rho(x,y,\lambda) := \lambda + \rho(y - x),
+\end{equation}
+and a step size $\tau > 0$. The block residuals are
+\begin{align}
+  r_x(x,y,\lambda) &:= \proj_{\mathcal{X}}\!\left[x - \tau\,\nabla_x \mathcal{L}_\rho(x,y,\lambda)\right] - x, \label{eq:r_x}\\[4pt]
+  r_y(x,y,\lambda) &:= \operatorname{prox}_{\tau\left(\alpha\,\TV \,+\, \iota_{\mathcal{Y}}\right)}\!\left[y - \tau\,\nabla_y \mathcal{L}^{\mathrm{sm}}_\rho(x,y,\lambda)\right] - y, \label{eq:r_y}
+\end{align}
+where $\iota_{\mathcal{Y}}$ is the indicator of $\mathcal{Y}$. The proximal-gradient dual infeasibility used in place of \eqref{eq:omega} is
+\begin{equation}\label{eq:omega-prox}
+  \widetilde{\omega}_\rho(x,y,\lambda) := \left\|r_x(x,y,\lambda)\right\|_2^2 + \left\|r_y(x,y,\lambda)\right\|_2^2.
+\end{equation}
+Choosing $\tau = 1$ recovers the structure of \eqref{eq:omega} on the smooth $x$-block. The prox in \eqref{eq:r_y} is itself a quadratic-plus-TV problem on $\mathcal{Y}$ and is solved by the same Chambolle--Pock routine used for the $y$-update, with quadratic data $a_v = \tfrac{1}{2}$ and $b_v = -\bigl(y - \tau\,\nabla_y \mathcal{L}^{\mathrm{sm}}_\rho\bigr)_v$, weight $\tau\alpha$ on the TV term, and the same budget $B$. In the algorithm of \S\ref{subsec:algorithm} we use \eqref{eq:omega-prox} in place of \eqref{eq:omega}.
+
+\medskip
+\noindent\textbf{Definition (Augmented Lagrangian Filter and Acceptance).}
+A filter $\mathcal{F}$ is a list of pairs
+$(\eta^{(l)}, \omega^{(l)}) := (\eta(x^{(l)},y^{(l)}), \omega_0(x^{(l)},y^{(l)},\lambda^{(l)}))$
+such that no pair dominates another pair; i.e., there exist no pairs $(\eta^{(l)}, \omega^{(l)})$,
+$(\eta^{(k)},\omega^{(k)})$, $l \neq k$ such that $\eta^{(l)} \leq \eta^{(k)}$
+and $\omega^{(l)} \leq \omega^{(k)}$.
+A point $(x,y,\lambda)$ is acceptable to the filter $\mathcal{F}$ iff for some fixed constants $0 < \gamma, \beta < 1$,
+\begin{equation}
+  \eta(x,y) \leq \beta\eta^{(l)} \quad \text{or} \quad
+  \omega(x,y,\lambda) \leq \omega^{(l)} - \gamma\eta(x,y), \quad
+  \forall\, (\eta^{(l)}, \omega^{(l)}) \in \mathcal{F}.
+  \label{eq:filter}
+\end{equation}
+
+\subsection{Optimality Condition}
+
+For a fixed tolerance, $\epsilon > 0$, a  point, $(x,y,\lambda)$, is called $\epsilon$-optimal, iff $(x,y) \in {\cal X} \times {\cal Y}$ and 
+\begin{align}
+  \eta(x,y) & \leq \epsilon \label{eq:etaOpt}\\[4pt]
+  \omega_0(x,y,\lambda) & \leq \epsilon. \label{eq:omegaOpt}
+\end{align}
+
+
+\subsection{Sufficient Decrease Condition}
+
+Ensure that the step in each subproblem solve makes at least sufficient decrease wrt minimizing the augmented Lagrangian for fixed multipliers.
+\begin{equation}
+  \Delta\mathcal{L}_{\rho^{(k)}}^{(j)}
+  := \mathcal{L}_{\rho^{(k)}}(x^{(j)}, y^{(j)}, \lambda^{(k)})
+   - \mathcal{L}_{\rho^{(k)}}(x^{(j+1)}, y^{(j+1)}, \lambda^{(k)})
+  \geq \sigma\,\omega_{\rho^{(k)}}(x^{(j)}, y^{(j)}, \lambda^{(k)}).
+  \label{eq:suffRed}
+\end{equation}
+Note, that the dual infeasibility is evaluated at $(x^{(j)}, y^{(j)}, \lambda^{(k)})$. It can be shown that
+\[
+\omega_{\rho^{(k)}}(x^{(k+1)}, y^{(k+1)}, \lambda^{(k)})
+= \omega_{0}(x^{(k+1)}, y^{(k+1)}, \lambda^{(k+1)})
+\]
+after the first-order multiplier update, $\lambda^{(k+1)} = \lambda^{(k)} + \rho (x^{(k+1)} - y^{(k+1)})$, where $\omega_0(\cdot)$ is the traditional first-order error.
+
+\subsection{Restoration Switching Condition}
+
+We switch to the restoration phase, when we are \eqref{eq:restSwitch1} to far from feasible, or \eqref{eq:restSwitch2} almost dual feasible, but still primal infeasible
+\begin{align}
+  \eta(x^{(j+1)},y^{(j+1)}) &\geq \beta U, \label{eq:restSwitch1}\\[4pt]
+  \omega_{\rho_k}(x^{(j+1)}, y^{(j+1)}, \lambda^{(k)}) \leq \epsilon \quad
+  &\text{and} \quad \eta(x^{(j+1)},y^{(j+1)}) \geq \beta\eta_{\min}. \label{eq:restSwitch2}
+\end{align}
+where $U>0$ and $\epsilon>0$ are constants and $\eta_{\min}$ is the smallest primal infeasibility of all filter entries:
+\begin{equation}\label{eq:DefEta}
+  \eta_{\min} := \min \left\{ \eta^{(l)} : \left( \eta^{(l)}, \omega^{(l)} \right) \in {\cal F}_k \right\}.
+\end{equation}
+
+\subsection{ADMM Filter Algorithm for \eqref{eq:TopoOpt}}\label{subsec:algorithm}
+
+\begin{algorithm2e}[H]
+\caption{ADMM-Filter for solving (1)}
+%\SetKwData{Restflag}{Restflag}
+\KwData{Given tolerance $\epsilon>0$, initial point $(x^{(0)}, y^{(0)}, \lambda^{(0)})$, initial penalty $\rho_0>0$, set $k \gets 0$}
+
+Compute $\eta^{(0)}:=\eta(x^{(0)}, y^{(0)})$ and
+$\omega^{(0)} := \omega(x^{(0)}, y^{(0)}, \lambda^{(0)})$ and set
+$\mathcal{F}_0 := \left\{ (\eta^{(0)}, \omega^{(0)}) \right\}$\;
+\While{$(x^{(k)},y^{(k)},\lambda^{(k)})$ \emph{not $\epsilon$-optimal according to \eqref{eq:etaOpt} and \eqref{eq:omegaOpt}}}{
+  Initialize: $j \leftarrow 0$;\ \;
+  Initialize variables: $(x^{(j)},y^{(j)}) \gets (x^{(k)},y^{(k)})$,
+  set $(\eta^{(j)}, \omega^{(j)}) \gets (\eta^{(k)}, \omega^{(k)})$\;
+  \While{$(\eta^{(j)}, \omega^{(j)})$ \emph{not acceptable to} $\mathcal{F}_k$}{
+    \tcp{Find $(x^{(j+1)},y^{(j+1)})$ that satisfies sufficient decrease condition \eqref{eq:suffRed}}
+    
+    $\displaystyle x^{(j+1)} \gets \amin_{\substack{x\in[\epsilon,1]^n \\ \sum x_v \leq B}} F(x) - \lambda^{(k)^T} \left( x - y^{(j)} \right) + \dfrac{\rho}{2}\left\|x - y^{(j)}\right\|_2^2$ \tcp{reciprocal approx.}
+
+    $\displaystyle y^{(j+1)} \gets \min_{\substack{y\in[\epsilon,1]^n \\ \sum y_v \leq B}} \alpha\,\TV(y) - \lambda^{(k)^T} \left( x^{(j)} - y \right) + \dfrac{\rho}{2}\left\|y - x^{(j+1)}\right\|_2^2$ \tcp{Chambolle-Pock}
+
+    Compute $\omega_{\rho_k}(x^{(j+1)}, y^{(j+1)}, \lambda^{(k)}),\; \eta(x^{(j+1)}, y^{(j+1)})$\;
+
+    \If{\emph{restoration conditions \eqref{eq:restSwitch1} or \eqref{eq:restSwitch2} hold}}{
+      \tcp{Find $(x^{(j+1)},y^{(j+1)})$ s.t.\ $(\eta^{(j+1)}, \omega_{\rho_k}^{(j+1)})$ acceptable to $\mathcal{F}_k$}
+
+      Set $m \gets 1$, form $\hat{y} := x^{(j+1)} + \frac{1}{2} \left( y^{(j+1)} - x^{(j+1)} \right)$\;
+      Compute $\hat{\eta} := \eta(x^{(j+1)},\hat{y})$, and
+      $\hat{\omega} := \omega_{\rho_k}(x^{(j+1)},\hat{y},\lambda^{(k)})$
+      
+      \While{$(\hat{\eta},\hat{\omega})$ not acceptable to filter ${\cal F}_k$}{
+        Set $m \gets m+1$, and
+        form $\hat{y} := x^{(j+1)} + \frac{1}{2^m} \left( y^{(j+1)} - x^{(j+1)} \right)$ \;
+        Compute $\hat{\eta} := \eta(x^{(j+1)},\hat{y})$, and
+        $\hat{\omega} := \omega_{\rho_k}(x^{(j+1)},\hat{y},\lambda^{(k)})$ \;
+      }
+
+      Set $y^{(j+1)} \gets \hat{y}$,
+      $\omega_{\rho_k}(x^{(j+1)}, y^{(j+1)}, \lambda^{(k)}) \gets \hat{\omega}$,
+      and $\eta(x^{(j+1)}, y^{(j+1)}) \gets \hat{\eta}$\;
+      Increase penalty parameter: $\rho_{k+1} \leftarrow 2\rho_k$\;
+    } % end-IF
+    $j \gets j+1$\;
+  } % end-WHILE (inner loop)
+
+  Update:\ $(x^{(k+1)}, y^{(k+1)}, \lambda^{(k+1)}) \leftarrow
+    \bigl(x^{(j)}, y^{(j)}, \lambda^{(k)} - \rho^{(k)}\left(x^{(j)}-y^{(j)}\right)\bigr)$\;
+  \If{$\eta^{(k)} > 0$}{
+    Update:\ $(\eta^{(k+1)}, \omega^{(k+1)}) \gets
+      \bigl(\eta(x^{(k+1)},y^{(k+1)}),\omega_0(x^{(k+1)},y^{(k+1)},\lambda^{(k+1)})\bigr)$\;
+    $\mathcal{F}_{k+1} \gets  \mathcal{F}_k \cup \{(\eta^{(k+1)},\omega^{(k+1)})\}$
+    \tcp{ensures $\eta_\ell > 0$, $\forall\,\ell \in \mathcal{F}_{k+1}$}
+  } % end-IF
+  $k \leftarrow k + 1$\;
+} % end-WHILE (outer loop)
+\end{algorithm2e}
+
+\subsection{Implementation Notes}
+
+\begin{enumerate}
+\item Implement a filter class with the following properties:
+  \begin{enumerate}
+  \item Store filter entries $(\eta^{(l)}, \omega^{(l)})$
+  \item Remove redundant entries, i.e. entries $(\eta^{(r)}, \omega^{(r)})$ such that
+    there exists an entry $(\eta^{(d)}, \omega^{(d)})$ with $\eta^{(d)}<\eta^{(r)}$
+    and $\omega^{(d)}<\omega^{(r)}$
+  \item A function to check filter acceptance (defined above).
+  \item A function to add new filter entries.
+  \end{enumerate}
+\item Implement a class to compute the optimality criteria \eqref{eq:eta} and
+  \eqref{eq:omega} (or, in our extension, \eqref{eq:omega-prox}). To compute the projection needed for \eqref{eq:omega}, i.e.
+  \begin{equation}\label{eq:proj-op}
+    \proj_{\mathcal{X}\times{\cal Y}} \left[\myvec{s_x \\ s_y}\right]
+  \end{equation}
+  one option is to implement a convex QP solver for
+  \begin{align}\label{eq:proj-qp}
+    \min_{p_x, p_y} \quad & \left\| \myvec{p_x \\ p_y} - \myvec{s_x \\ s_y} \right\|_2^2 \\
+    \stn \quad  & (p_x,p_y) \in {\cal X} \times {\cal Y}. \nonumber
+  \end{align}
+
+\medskip
+\noindent\textbf{Lagrangian closed-form alternative.}
+Since $\mathcal{X}$ and $\mathcal{Y}$ are independent and have identical structure (box plus a single budget constraint), the QP \eqref{eq:proj-qp} \emph{separates} into two decoupled single-block problems. For one block, writing $s, p \in \mathbb{R}^n$ for either pair,
+\begin{equation}\label{eq:proj-block}
+  \min_{p}\ \tfrac{1}{2}\|p - s\|_2^2 \quad \stn\ p \in [\epsilon,1]^n,\ \mathbf{1}^\top p \leq B.
+\end{equation}
+Form the partial Lagrangian for the budget constraint with multiplier $\mu \geq 0$,
+\begin{equation}\label{eq:proj-lagrangian}
+  \mathcal{L}^{\mathrm{proj}}(p,\mu) := \tfrac{1}{2}\|p - s\|_2^2 + \mu\bigl(\mathbf{1}^\top p - B\bigr),
+\end{equation}
+keeping the box constraint $p \in [\epsilon,1]^n$ explicit. The inner box-constrained minimisation has the per-coordinate closed form
+\begin{equation}\label{eq:proj-coord}
+  p^\ast_v(\mu) = \mathrm{clip}\!\left(s_v - \mu,\ \epsilon,\ 1\right),
+\end{equation}
+and the aggregate $\sum_v p^\ast_v(\mu)$ is piecewise-linear and non-increasing in $\mu$. If $\sum_v \mathrm{clip}(s_v,\epsilon,1) \leq B$, the budget is inactive and $\mu^\ast = 0$; otherwise $\mu^\ast > 0$ is the unique root of
+\begin{equation}\label{eq:proj-bisection}
+  \sum_{v} \mathrm{clip}\!\left(s_v - \mu,\ \epsilon,\ 1\right) - B = 0,
+\end{equation}
+found by 1-D bisection (Brent's method). Equations \eqref{eq:proj-coord}--\eqref{eq:proj-bisection} avoid a general convex-QP solve and reuse the same skeleton already employed in the reciprocal-approximation $x$-update.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Implemented Algorithm}\label{sec:implemented}
+
+The driver \texttt{FilterADMM.py} implements the algorithm of \S\ref{subsec:algorithm} with four deviations from the pseudocode as written, plus one correction (\S\ref{subsec:omega-zero}) to a transcription bug present in earlier drafts of Algorithm~\ref{alg:filter-impl}. Each item is documented here so the as-written algorithm of \S\ref{subsec:algorithm} remains a clean reference and the implementation faithfully covers the corner cases the pseudocode does not address.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Third restoration trigger: $j+1 = M_{\max}$}\label{subsec:trig-M}
+
+In addition to the restoration switching conditions \eqref{eq:restSwitch1} and \eqref{eq:restSwitch2}, the implementation triggers restoration when the inner iteration counter $j$ reaches its cap $M_{\max}$ (default $M_{\max} = 20$):
+\begin{equation}\label{eq:restSwitch3}
+  j + 1 = M_{\max}.
+\end{equation}
+\noindent\textbf{Reason.} The pseudocode does not specify what to do when the inner loop exhausts its iteration budget without producing a filter-acceptable iterate. Without trigger \eqref{eq:restSwitch3} the inner loop could spin through $M_{\max}$ rejected ADMM steps and exit without doubling $\rho$, leaving the algorithm in the same regime that produced the unacceptable iterates. Treating an exhausted inner budget as a restoration trigger guarantees that progress is made.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Inner-loop acceptance test moved to the bottom of the $j$-loop}\label{subsec:bottom-test}
+
+The pseudocode in \S\ref{subsec:algorithm} tests filter acceptance at the \emph{top} of the inner $j$-loop:
+\begin{verbatim}
+While (eta^(j), omega^(j)) not acceptable to F_k:
+    take ADMM step ...
+\end{verbatim}
+For the compliance + TV problem, the natural initial design $x^{(0)} = y^{(0)} = (B/n)\,\mathbf{1}$ (uniform feasible) gives $\eta^{(0)} = 0$ exactly. The algorithm of \S\ref{subsec:algorithm} initialises $\mathcal{F}_0 := \{(\eta^{(0)}, \omega^{(0)})\}$, but a feasible iterate must not be added to the filter (it would block every subsequent infeasible iterate on the $\eta$-branch); the implementation therefore starts with $\mathcal{F}_0 = \emptyset$ when $\eta^{(0)} = 0$. An empty filter accepts every iterate, so the top-test would short-circuit the inner loop before any ADMM step is taken, $\lambda$ would update by zero, and the algorithm could not make progress.
+
+The implementation therefore takes at least one ADMM step per outer iteration and tests filter acceptance at the \emph{bottom} of the $j$-loop:
+\begin{verbatim}
+For j = 0, 1, ..., M_max - 1:
+    take ADMM step
+    compute (eta^(j+1), omega^(j+1))
+    handle restoration triggers (eqs. (8), (9), (3.3))
+    promote (x^(j+1), y^(j+1)) to working state
+    if (eta^(j+1), omega^(j+1)) acceptable to F_k:
+        break
+\end{verbatim}
+This is equivalent to the pseudocode whenever $\mathcal{F}_k$ is non-empty.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Restoration backtracking accepts the first filter-acceptable $m$}\label{subsec:rest-first-m}
+
+The restoration $m$-loop in \S\ref{subsec:algorithm} accepts the first $\hat y := x^{(j+1)} + 2^{-m}\bigl(y^{(j+1)} - x^{(j+1)}\bigr)$ that is filter-acceptable. With an empty filter this is always $m = 1$, even when $\hat\eta := \eta(x^{(j+1)}, \hat y) = \tfrac{1}{4}\,\eta(x^{(j+1)}, y^{(j+1)})$ still satisfies the restoration trigger \eqref{eq:restSwitch1}. The implementation matches the pseudocode literally; in practice this means that the first restoration on a cold start may not shrink $\eta$ much, but subsequent restorations do because the filter is no longer empty after the multiplier update at the end of that outer iteration. On the $30\times10$ default $\rho$ doubles three times ($1, 2, 4, 8$) before the algorithm reaches optimality, and the convergence rate is unaffected.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Default for the upper bound $U$}\label{subsec:U-default}
+
+The algorithm of \S\ref{subsec:algorithm} treats $U$ as a free parameter of the restoration trigger \eqref{eq:restSwitch1}. Setting $U = \eta^{(0)} / \beta$ (so that $\beta U = \eta^{(0)}$) is the natural ``trigger if $\eta$ ever exceeds the initial primal infeasibility'' choice, but it is degenerate when $\eta^{(0)} = 0$, since it forces \eqref{eq:restSwitch1} to fire on every iterate with $\eta > 0$. The implementation defaults to $U = 10$, generous enough that \eqref{eq:restSwitch1} fires only when an ADMM step from a cold start sends $\eta$ above $\beta U \approx 9.9$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Outer convergence test uses $\widetilde{\omega}_0$, not $\widetilde{\omega}_\rho$}\label{subsec:omega-zero}
+
+Algorithm~\ref{alg:filter-impl} (Line~26 in the algorithm body) recomputes
+$\eta^{(k+1)}$ and $\omega^{(k+1)}$ \emph{after} the multiplier update
+$\lambda^{(k+1)} \gets \lambda^{(k)} - \rho\bigl(x^{(k+1)} - y^{(k+1)}\bigr)$
+and feeds them into the $\varepsilon_{\mathrm{opt}}$ test of
+\eqref{eq:etaOpt} and \eqref{eq:omegaOpt}. The proximal-gradient residual at
+this point must be evaluated with $\rho = 0$:
+\begin{equation}\label{eq:omega-zero}
+  \omega^{(k+1)} := \widetilde{\omega}_0\bigl(x^{(k+1)}, y^{(k+1)}, \lambda^{(k+1)}\bigr),
+\end{equation}
+using the unpenalised Lagrangian
+$\mathcal{L}_0(x,y,\lambda) = F(x) + \alpha\,\TV(y) - \lambda^\top(x-y)$,
+even though the penalty $\rho > 0$ remains in effect for the next outer
+iteration. The reason is that $\varepsilon_{\mathrm{opt}}$-optimality is a
+statement about the original (unpenalised) first-order conditions of
+\eqref{eq:OptAugLag}; the augmented term $\tfrac{\rho}{2}\|x-y\|_2^2$ is a
+solver mechanism, not part of the convergence target.
+
+\medskip
+\noindent\textbf{Equivalence with the inner-loop residual.}
+By the identity at the end of \S\ref{subsec:algorithm} (between
+\eqref{eq:suffRed} and \eqref{eq:omega-prox}),
+\begin{equation}\label{eq:omega-rho-zero-identity}
+  \widetilde{\omega}_\rho\bigl(x^{(k+1)}, y^{(k+1)}, \lambda^{(k)}\bigr)
+  \;=\;
+  \widetilde{\omega}_0\bigl(x^{(k+1)}, y^{(k+1)}, \lambda^{(k+1)}\bigr)
+  \quad
+  \text{after}\
+  \lambda^{(k+1)} = \lambda^{(k)} - \rho\bigl(x^{(k+1)} - y^{(k+1)}\bigr).
+\end{equation}
+Hence the value computed in Line~26 equals the last
+$\widetilde{\omega}_\rho$ value computed inside the inner loop (Line~13);
+recomputing $\eta^{(k+1)}$ and $\omega^{(k+1)}$ in Line~26 is therefore
+algebraically redundant and could be replaced by reusing the last inner
+values. The implementation keeps the recompute for now while validating the
+algorithm, since an extra prox solve is cheap relative to the
+restoration backtracking cost.
+
+Earlier drafts of Algorithm~\ref{alg:filter-impl} stated $\widetilde{\omega}_\rho$ on Line~26, which would not have matched the convergence target; the meeting algorithm of \S\ref{subsec:algorithm} (line~24 of Algorithm~1) already states $\omega_0$ correctly, and \texttt{FilterADMM.py} now matches.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Result on the default test problem}\label{subsec:result}
+
+On the default $30\times10$ cantilever ($40\%$ volume fraction, $\alpha = 0.5$, $\rho_{\mathrm{init}} = 1$, $\varepsilon_{\mathrm{opt}} = 10^{-2}$), the implementation converges in $14$ outer iterations with $\eta = 3.6\times10^{-3}$, $\omega = 7.8\times10^{-3}$, and final objective $331.45$. Three restorations are triggered, so $\rho$ traces $1 \to 2 \to 4 \to 8$. The baseline fixed-$\rho$ driver \texttt{admm.py} on the same problem does \emph{not} reach the tolerance in $30$ iterations: its primal residual stays at approximately $0.9$ and its objective is $334.47$.
+
+\medskip
+\noindent\textbf{Effect of the $\widetilde{\omega}_0$ correction (\S\ref{subsec:omega-zero}).} An earlier draft of \texttt{FilterADMM.py} evaluated the post-multiplier-update residual with $\widetilde{\omega}_\rho$ instead of $\widetilde{\omega}_0$. With $\rho > 0$, $\widetilde{\omega}_\rho$ overstates the unpenalised first-order error \eqref{eq:omegaOpt} that the convergence test actually targets, so the test fired later than it should have: the same problem reported convergence in $26$ outer iterations with $\eta = 1.6\times10^{-4}$, $\omega = 6.7\times10^{-3}$, objective $331.34$. The fix nearly halves the iteration count without changing the restoration count or the $\rho$ trace.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Algorithm statement}\label{subsec:implemented-algorithm}
+
+The algorithm of \S\ref{subsec:algorithm} with the modifications of \S\S\ref{subsec:trig-M}--\ref{subsec:U-default} and the correction of \S\ref{subsec:omega-zero} is stated as Algorithm~\ref{alg:filter-impl}. Notation matches \S\ref{subsec:algorithm} except that $\widetilde{\omega}_\rho$ \eqref{eq:omega-prox} is used in place of $\omega_\rho$ inside the inner loop (the implementation uses the proximal-gradient extension on the non-smooth $y$-block); the post-multiplier-update evaluation at Line~26 uses $\widetilde{\omega}_0$ per \eqref{eq:omega-zero}. The penalty $\rho$ is shared mutable state across the outer and inner loops: each restoration phase doubles it immediately and the doubled value is in effect for the remainder of the run, including the multiplier update at the end of the current outer iteration. Crucially, the doubled $\rho$ is \emph{not} substituted into the Line~26 omega evaluation -- only the inner-loop $\widetilde{\omega}_\rho$ values track the current penalty.
+
+{\footnotesize
+\begin{algorithm2e}[H]
+\caption{ADMM-Filter, as implemented in \texttt{FilterADMM.py}}\label{alg:filter-impl}
+\KwData{
+Tolerance $\varepsilon_{\mathrm{opt}} > 0$;
+initial point $(x^{(0)}, y^{(0)}, \lambda^{(0)})$;
+initial penalty $\rho > 0$;
+filter constants $0 < \beta, \gamma < 1$;
+sufficient-decrease constant $\sigma > 0$;
+restoration upper bound $U > 0$;
+iteration caps $K_{\max}$ (outer), $M_{\max}$ (inner; default $20$), $M_{\mathrm{rest}}$ (restoration backtracking; default $30$);
+proximal-residual step $\tau > 0$ (default $1$).
+Set $k \gets 0$.}
+
+Compute $\eta^{(0)} := \eta(x^{(0)}, y^{(0)})$ and $\omega^{(0)} := \widetilde{\omega}_\rho(x^{(0)}, y^{(0)}, \lambda^{(0)})$\;
+\leIf{$\eta^{(0)} > 0$}{$\mathcal{F}_0 \gets \{(\eta^{(0)}, \omega^{(0)})\}$}{$\mathcal{F}_0 \gets \emptyset$\tcp*[f]{see \S\ref{subsec:bottom-test}}}
+
+\While{$k < K_{\max}$ \emph{\textbf{and}} $(x^{(k)}, y^{(k)}, \lambda^{(k)})$ \emph{not $\varepsilon_{\mathrm{opt}}$-optimal per \eqref{eq:etaOpt}, \eqref{eq:omegaOpt}}}{
+  Initialize: $(x^{(j)}, y^{(j)}) \gets (x^{(k)}, y^{(k)})$, $(\eta^{(j)}, \omega^{(j)}) \gets (\eta^{(k)}, \omega^{(k)})$, restoration-failed $\gets$ \emph{false}\;
+
+  \For(\tcp*[h]{$j$-loop tested at the bottom; see \S\ref{subsec:bottom-test}}){$j \gets 0$ \KwTo $M_{\max}-1$}{
+    Cache $L_{\mathrm{prev}} \gets \mathcal{L}_\rho(x^{(j)}, y^{(j)}, \lambda^{(k)})$, $\omega_{\mathrm{prev}} \gets \omega^{(j)}$\;
+
+    $\displaystyle x^{(j+1)} \gets \amin_{\substack{x \in [\epsilon, 1]^n \\ \mathbf{1}^\top x \leq B}}\
+      F(x) - \lambda^{(k)\top}\!\bigl(x - y^{(j)}\bigr) + \tfrac{\rho}{2}\bigl\|x - y^{(j)}\bigr\|_2^2$ \tcp{reciprocal approx.}
+
+    $\displaystyle y^{(j+1)} \gets \amin_{\substack{y \in [\epsilon, 1]^n \\ \mathbf{1}^\top y \leq B}}\
+      \alpha\,\TV(y) - \lambda^{(k)\top}\!\bigl(x^{(j+1)} - y\bigr) + \tfrac{\rho}{2}\bigl\|y - x^{(j+1)}\bigr\|_2^2$ \tcp{Chambolle--Pock}
+
+    Compute $\eta^{(j+1)} := \eta(x^{(j+1)}, y^{(j+1)})$,
+    $\omega^{(j+1)} := \widetilde{\omega}_\rho(x^{(j+1)}, y^{(j+1)}, \lambda^{(k)})$,
+    $L_{\mathrm{new}} := \mathcal{L}_\rho(x^{(j+1)}, y^{(j+1)}, \lambda^{(k)})$\;
+    \lIf{$L_{\mathrm{prev}} - L_{\mathrm{new}} < \sigma\,\omega_{\mathrm{prev}}$}{record sufficient-decrease failure (no retry)}
+
+    \If(\tcp*[h]{rest-switch}){$\eta^{(j+1)} \geq \beta U$ \emph{\textbf{or}} $\bigl(\omega^{(j+1)} \leq \varepsilon_{\mathrm{opt}}$ \emph{\textbf{and}} $\eta^{(j+1)} \geq \beta\,\eta_{\min}\bigr)$ \emph{\textbf{or}} $j+1 = M_{\max}$}{
+      \tcp{Restoration: backtrack $\hat y = x^{(j+1)} + 2^{-m}\bigl(y^{(j+1)} - x^{(j+1)}\bigr)$}
+      Set accepted-flag to \emph{false}\;
+      \For{$m \gets 1$ \KwTo $M_{\mathrm{rest}}$}{
+        $\hat y \gets x^{(j+1)} + 2^{-m}\bigl(y^{(j+1)} - x^{(j+1)}\bigr)$\;
+        Compute $\hat\eta := \eta(x^{(j+1)}, \hat y)$, $\hat\omega := \widetilde{\omega}_\rho(x^{(j+1)}, \hat y, \lambda^{(k)})$\;
+        \If{$(\hat\eta, \hat\omega)$ acceptable to $\mathcal{F}_k$}{
+          $(y^{(j+1)}, \eta^{(j+1)}, \omega^{(j+1)}) \gets (\hat y, \hat\eta, \hat\omega)$, accepted-flag $\gets$ \emph{true}, \textbf{break}\;
+        }
+      }
+      \lIf{accepted-flag is \emph{false}}{set restoration-failed flag to \emph{true}}
+      $\rho \gets 2\rho$ \tcp*{double the penalty (always, when triggered)}
+    }
+
+    Promote: $(x^{(j)}, y^{(j)}, \eta^{(j)}, \omega^{(j)}) \gets (x^{(j+1)}, y^{(j+1)}, \eta^{(j+1)}, \omega^{(j+1)})$\;
+
+    \If(\tcp*[h]{moved to bottom; see \S\ref{subsec:bottom-test}}){restoration-failed \emph{\textbf{or}} $(\eta^{(j)}, \omega^{(j)})$ acceptable to $\mathcal{F}_k$}{
+      \textbf{break} the $j$-loop\;
+    }
+  }
+
+  \tcp{Outer multiplier update and filter add (always executed, even on restoration failure)}
+  $(x^{(k+1)}, y^{(k+1)}) \gets (x^{(j)}, y^{(j)})$, $\lambda^{(k+1)} \gets \lambda^{(k)} - \rho\bigl(x^{(k+1)} - y^{(k+1)}\bigr)$\;
+  $\eta^{(k+1)} \gets \eta(x^{(k+1)}, y^{(k+1)})$, $\omega^{(k+1)} \gets \widetilde{\omega}_{\textcolor{red}{0}}(x^{(k+1)}, y^{(k+1)}, \lambda^{(k+1)})$ \tcp*{$\rho{=}0$ here; see \S\ref{subsec:omega-zero}}\;
+  \lIf{$\eta^{(k+1)} > 0$}{$\mathcal{F}_{k+1} \gets \mathcal{F}_k \cup \{(\eta^{(k+1)}, \omega^{(k+1)})\}$ with dominated entries pruned}
+  \lElse{$\mathcal{F}_{k+1} \gets \mathcal{F}_k$}
+  \lIf{restoration-failed}{\textbf{return} $(x^{(k+1)}, y^{(k+1)}, \lambda^{(k+1)})$ with status \emph{restoration\_failed}}
+  $k \gets k+1$\;
+}
+\textbf{return} $(x^{(k)}, y^{(k)}, \lambda^{(k)})$ with status \emph{converged} (if $\varepsilon_{\mathrm{opt}}$-optimal) or \emph{max\_outer} (if $k = K_{\max}$)\;
+\end{algorithm2e}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Files and Reproducing the Results}\label{sec:reproduction}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Files}
+
+The implementation is split across the following Python modules. Each module ships a self-test in its \verb|__main__| block.
+
+\medskip
+\begin{center}
+\begin{tabular}{@{}lp{8.5cm}@{}}
+\toprule
+\textbf{File} & \textbf{Role} \\
+\midrule
+\texttt{compliance.py}         & FEM compliance evaluator (cantilever beam) \\[2pt]
+\texttt{reciprocal\_approx.py} & $x$-update: reciprocal approximation, Newton on the per-element cubic, bisection on the budget multiplier \\[2pt]
+\texttt{graph\_tv.py}          & $y$-update: Chambolle--Pock primal-dual on graph TV \\[2pt]
+\texttt{admm.py}               & Baseline outer ADMM loop with fixed $\rho$; also defines \texttt{build\_grid\_edges} \\[2pt]
+\texttt{filter.py}             & \texttt{Filter} class: dominance pruning, acceptance test \eqref{eq:filter}, $\eta_{\min}$ for \eqref{eq:DefEta} \\[2pt]
+\texttt{projection.py}         & Box-+-budget projection \eqref{eq:proj-coord}--\eqref{eq:proj-bisection} \\[2pt]
+\texttt{optimality.py}         & \texttt{compute\_eta} \eqref{eq:eta}; \texttt{compute\_lagrangian} for $\mathcal{L}_\rho$; \texttt{compute\_omega} \eqref{eq:omega-prox} \\[2pt]
+\texttt{FilterADMM.py}         & \textbf{Recommended driver}: double-loop ADMM-Filter from \S\ref{subsec:algorithm} with the modifications of \S\ref{sec:implemented} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\medskip\noindent
+The primitives \texttt{filter.py}, \texttt{projection.py}, \texttt{optimality.py} are validated independently by their self-tests. \texttt{projection.py} matches \texttt{scipy.optimize} (SLSQP) to $1.67\times10^{-16}$; \texttt{optimality.py} drives $\widetilde{\omega}_\rho$ down by $\sim 2000\times$ over $30$ baseline-ADMM iterations on the $30\times10$ test problem. \texttt{FilterADMM.py} is validated end-to-end by the result reported in \S\ref{subsec:result}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Requirements and conda environment}
+
+The runtime depends only on \texttt{numpy} and \texttt{scipy}; \texttt{matplotlib} is needed only for the optional notebook walkthrough. The file \texttt{requirements.txt} lists:
+
+\begin{verbatim}
+numpy
+scipy
+matplotlib
+\end{verbatim}
+
+A conda environment named \texttt{RASC} is the recommended setup:
+
+\begin{verbatim}
+conda create -n RASC python=3.11 -y
+conda activate RASC
+pip install -r requirements.txt
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Running the code}
+
+After activating the environment, the recommended driver runs with:
+
+\begin{verbatim}
+conda activate RASC
+python3 FilterADMM.py
+\end{verbatim}
+
+This executes the self-test described in \S\ref{subsec:result} and prints a per-outer-iteration trajectory followed by a summary block. Approximate runtime: ten seconds. For a side-by-side comparison with the fixed-$\rho$ baseline:
+
+\begin{verbatim}
+conda activate RASC
+python3 admm.py            # baseline: does NOT converge in 30 iterations
+python3 FilterADMM.py      # filter:   converges in ~26 iterations
+\end{verbatim}
+
+The script accepts command-line overrides for the most commonly tuned
+parameters; defaults reproduce the self-test of \S\ref{subsec:result}:
+
+\begin{verbatim}
+python3 FilterADMM.py --help                          # list options
+python3 FilterADMM.py --nelx 60 --nely 20             # larger mesh,
+                                                      #   keep 40% volfrac
+python3 FilterADMM.py --volfrac 0.3 --alpha 1.0       # different problem
+python3 FilterADMM.py --no-verbose-inner              # outer-only logging
+python3 FilterADMM.py --plot-inner                    # add per-inner PDFs
+python3 FilterADMM.py --no-plot --no-verbose --no-verbose-inner   # silent
+\end{verbatim}
+
+\noindent
+The available flags are \texttt{--nelx} (int, default 30),
+\texttt{--nely} (int, default 10),
+\texttt{--volfrac} (float, default 0.4; budget is computed as
+$\texttt{volfrac}\times\texttt{nelx}\times\texttt{nely}$),
+\texttt{--penal} (float, default 3.0),
+\texttt{--alpha} (float, default 0.5),
+\texttt{--plot}/\texttt{--no-plot} (default \texttt{--plot}),
+and \texttt{--verbose}/\texttt{--no-verbose} (default \texttt{--verbose}).
+The CLI also accepts
+\texttt{--verbose-inner}/\texttt{--no-verbose-inner} (default
+\texttt{--verbose-inner}), which toggles per-inner-iteration log rows, and
+\texttt{--plot-inner}/\texttt{--no-plot-inner} (default
+\texttt{--no-plot-inner}), which writes per-inner-iteration heat-map PDFs to
+\texttt{images/iter\_NNNN\_jJJ.pdf} alongside the per-outer-iteration files.
+The log itself is tabular with a header printed once at the start; each row
+is labelled \texttt{outer} or \texttt{inner}, with the iteration index shown
+as $k$ for outer rows and $k.j$ for inner rows.
+All other parameters of \texttt{filter\_admm\_compliance\_tv} (filter
+constants, restoration caps, tolerances) keep their in-file defaults; for
+those, use the programmatic interface below.
+
+For programmatic use:
+
+\begin{verbatim}
+from FilterADMM import filter_admm_compliance_tv
+
+x_opt, info = filter_admm_compliance_tv(
+    nelx=60, nely=20,
+    penal=3.0,
+    alpha=0.5,
+    budget=0.4 * 60 * 20,    # 40% volume fraction
+    rho_init=1.0,
+    eps_opt=1e-3,
+    max_outer=100,
+    verbose=True,            # one tabular row per outer iteration
+    verbose_inner=True,      # one tabular row per inner ADMM step
+    plot=False,              # images/iter_NNNN.pdf per outer iteration
+    plot_inner=False,        # images/iter_NNNN_jJJ.pdf per inner step
+)
+\end{verbatim}
+
+\begin{sloppypar}
+\noindent
+The returned \texttt{info} dictionary contains the booleans \texttt{converged} and \texttt{reason} (one of \texttt{'converged'}, \texttt{'max\_outer'}, \texttt{'restoration\_failed'}); the integer \texttt{n\_iter}; the trajectories \texttt{eta\_history}, \texttt{omega\_history}, \texttt{rho\_history}, \texttt{filter\_size\_history}, \texttt{inner\_iter\_history}, \texttt{objective}; and the cumulative counters \texttt{restoration\_count} and \texttt{suff\_dec\_failures}. See the docstring of \texttt{filter\_admm\_compliance\_tv} for the full list.
+\end{sloppypar}
+
+\newpage
+\appendix
+\section{Next Steps}
+
+\begin{itemize}
+\item \textbf{\textcolor{red}{Done:}} \sout{Check the convergence during the inner iterations}
+\item \textbf{\textcolor{red}{Done:}} \sout{Verify that we use $\| {\cal L}_0 \|$ for outer iteration convergence, not $\| {\cal L}_{\textcolor{red}{\rho}} \|$.}
+\item \textbf{\textcolor{red}{Done:}} \sout{Solve larger problem ($60 \times 20$) ... allow variable problem size?}
+\item  \textbf{\textcolor{red}{Done:}} \sout{Add print statements (variable problem size); inner iteration progress; outer iteration logs (think about inner/outer logs)}
+\item Create movie of iterations; 
+\item \textbf{\textcolor{red}{Done:}} \sout{Create a jupyter notebook that illustrates the solve.}
+\item Check when to exit inner loop (if sufficient decrease, then exit before restoration):
+  \begin{itemize}
+    \item re-write inner loop
+    \item Adjust the parameters: for $x/y$ iterations; explore effect on filter (e.g. $x$ until acceptable)
+\begin{verbatim}
+    max_iter_x=100,   # 1   ... suggested by Dominic
+    max_iter_y=2000,  # 50  ... suggested by Dominic
+\end{verbatim}
+\end{itemize}
+\item Update \LaTeX paper
+\end{itemize}
+
+\end{document}
+
+
