@@ -8,18 +8,18 @@ Build a constrained derivative-free optimization solver
 
 - **Key Reference:** Larson, menickelly, Wild. "Derivative-free optimization methods". Acta Numerica. 2019;28:287-404. doi:10.1017/S0962492919000060
 - **Related Solvers:**
-  - libEnsemble `https://libensemble.readthedocs.io/en/main/index.html`
-    - Optimization with APOSSM `https://libensemble.readthedocs.io/en/main/tutorials/aposmm_tutorial.html#`
-    - Optimization with XOPT `https://libensemble.readthedocs.io/en/main/tutorials/xopt_bayesian_gen.html`
-    - git repo `https://github.com/Libensemble` (library to coordinate the concurrent evaluation of dynamic ensembles of calculations)
-  - XOPT Flexible Optimizer `https://xopt.xopt.org/`
+  - [libEnsemble: concurrent evaluation](https://libensemble.readthedocs.io/en/main/index.html)
+    - [Optimization with APOSSM](https://libensemble.readthedocs.io/en/main/tutorials/aposmm_tutorial.html#)
+    - [Optimization with XOPT](https://libensemble.readthedocs.io/en/main/tutorials/xopt_bayesian_gen.html)
+    - [git repo](https://github.com/Libensemble`) (library to coordinate the concurrent evaluation of dynamic ensembles of calculations)
+  - [XOPT Flexible Optimizer](https://xopt.xopt.org/)
 
 ## Problem Statement
 
 Develop a **constrained** derivative-free optinmization solver for the following problem:
 
 $$
-{\large \min_x \; f(x) \quad \text{s.t.} \; l \le c(x) \le u, \; x \in X,}
+{\large \min_x  f(x) \quad \text{s.t.}  l \le c(x) \le u,  x \in X,}
 $$ 
 
 where
@@ -34,7 +34,7 @@ We will use a model-based approach that solves a *sequence of easier subproblems
 Letting $m^f(x), m^c(x)$ denote the models constructed at the current iterate $x_k$, the algorithm solves the following subproblem for a possible new iterate, $\hat{x}$:
 
 $$
-{\large \min_x \; m^f(x) \quad \text{s.t.} \; l \le m^c(x) \le u, \; x \in X, \; \| x - x_k \| \le \Delta_k, }
+{\large \min_x  m^f(x) \quad \text{s.t.}  l \le m^c(x) \le u,  x \in X,  \| x - x_k \| \le \Delta_k, }
 $$
 
 where $\Delta_k>0$ is a trust-region radius.
@@ -54,6 +54,7 @@ where $\Delta_k>0$ is a trust-region radius.
 
 ## Outline of Tasks
 
+For fun, you can simply ask `claude` to implement the plan below ... or do it step-by-step.
 1. Literature survey; concentrate on **constrained** problems/solvers.
 2. Decide on subproblem solver; consider `unopy`; allow flexible solvers.
 3. Create/download some simple test problems; e.g. Hock-Schittkowski set.
