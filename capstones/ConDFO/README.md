@@ -19,7 +19,7 @@ Build a constrained derivative-free optimization solver
 Develop a **constrained** derivative-free optinmization solver for the following problem:
 
 $$
-{\Large \min_x \; f(x) \quad \text{s.t.} \; l \le c(x) \le u, \; x \in X,}
+{\large \min_x \; f(x) \quad \text{s.t.} \; l \le c(x) \le u, \; x \in X,}
 $$ 
 
 where
@@ -34,7 +34,7 @@ We will use a model-based approach that solves a *sequence of easier subproblems
 Letting $m^f(x), m^c(x)$ denote the models constructed at the current iterate $x_k$, the algorithm solves the following subproblem for a possible new iterate, $\hat{x}$:
 
 $$
-\min_x \; m^f(x) \quad \text{s.t.} \; l \le m^c(x) \le u, \; x \in X, \; \| x - x_k \| \le \Delta_k
+{\large \min_x \; m^f(x) \quad \text{s.t.} \; l \le m^c(x) \le u, \; x \in X, \; \| x - x_k \| \le \Delta_k, }
 $$
 
 where $\Delta_k>0$ is a trust-region radius.
