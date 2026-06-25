@@ -17,9 +17,11 @@ Build a constrained derivative-free optimization solver
 ## Problem Statement
 
 Develop a **constrained** derivative-free optinmization solver for the following problem:
-\[
-\min_x \; f(x) \quad \text{s.t.} \; l \le c(x) \le u, \; x \in X,
-\]
+
+$$
+{\Large \min_x \; f(x) \quad \text{s.t.} \; l \le c(x) \le u, \; x \in X,}
+$$ 
+
 where
 - $f(x)$ and $c(x)$ are nonlinear functions that involve a simulation (**derivatives not available**) 
 - $l, u$ are bounds (can be infinite)
