@@ -43,7 +43,7 @@ Specific data is in `problem.py`. The candidate KKT point in `solution.json` is 
 
 ## Steps
 
-1. `cd exercises/03-skills && claude`
+1. `cd exercises-opt/03-skills && claude`
 2. Ask:
 
    ```

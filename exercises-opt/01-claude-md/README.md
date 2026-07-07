@@ -16,7 +16,7 @@ interface but deliberately omits the geometric meaning of the variables.
 ## Setup
 
 ```bash
-cd exercises/01-claude-md
+cd exercises-opt/01-claude-md
 conda create -n optimization python=3.11 numpy scipy matplotlib
 conda activate optimization
 pip install unopy

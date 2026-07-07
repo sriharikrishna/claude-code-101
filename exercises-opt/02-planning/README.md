@@ -37,7 +37,7 @@ the critical-reading checklist names the rest.
 
 ## Steps
 
-1. `cd exercises/02-planning && claude`
+1. `cd exercises-opt/02-planning && claude`
 2. Press `Shift+Tab` twice to enter plan mode (look for the `plan mode` indicator at the bottom of the screen).
 3. Ask:
 

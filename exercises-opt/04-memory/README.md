@@ -82,7 +82,7 @@ python3 FilterADMM.py --nelx 60 --nely 20                 # larger mesh
 
 ## Exercise Steps
 
-1. `cd exercises/04-memory && claude`
+1. `cd exercises-opt/04-memory && claude`
 2. Ask:
 
    ```

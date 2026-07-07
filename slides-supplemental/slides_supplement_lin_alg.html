@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Linear algebra supplement — Claude Code workshop</title>
+<style>
+  :root {
+    --bg: #fbfaf6;
+    --ink: #1c1c1c;
+    --muted: #5b5b5b;
+    --accent: #b8410f;
+    --accent-soft: #e8d8c4;
+    --rule: #d6cfbf;
+    --code-bg: #f1ece1;
+    --code-ink: #1c1c1c;
+    --serif: "Iowan Old Style", "Palatino Linotype", "URW Palladio L", Palatino, Georgia, serif;
+    --sans: "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "JetBrains Mono", "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--serif); }
+  body { display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  #deck {
+    position: relative;
+    width: min(96vw, 1180px);
+    aspect-ratio: 16 / 10;
+    max-height: 92vh;
+    background: var(--bg);
+    box-shadow: 0 1px 0 var(--rule);
+    overflow: hidden;
+  }
+  .slide { position: absolute; inset: 0; padding: 56px 72px 72px; display: none; flex-direction: column; overflow: auto; }
+  .slide.active { display: flex; }
+  .slide h1 { font-family: var(--serif); font-weight: 600; font-size: 44px; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 8px; color: var(--ink); }
+  .slide h2 { font-family: var(--serif); font-weight: 600; font-size: 32px; line-height: 1.2; margin: 0 0 6px; }
+  .slide h3 { font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px; font-weight: 600; color: var(--accent); margin: 0 0 18px; }
+  .slide p, .slide li { font-size: 21px; line-height: 1.45; }
+  .slide ul, .slide ol { padding-left: 1.2em; margin: 0.4em 0 0.6em; }
+  .slide li { margin: 0.25em 0; }
+  .slide code { font-family: var(--mono); font-size: 0.92em; background: var(--code-bg); padding: 1px 6px; border-radius: 3px; }
+  .slide pre { font-family: var(--mono); background: var(--code-bg); color: var(--code-ink); padding: 16px 20px; border-radius: 4px; font-size: 15.5px; line-height: 1.45; overflow: auto; margin: 8px 0; border-left: 3px solid var(--accent); }
+  .slide pre code { background: transparent; padding: 0; font-size: inherit; }
+  .slide .lede { font-size: 24px; color: var(--muted); margin-top: 0; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 8px; }
+  .two-col .col h4 { font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; color: var(--muted); margin: 0 0 8px; }
+  .callout { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; margin: 12px 0; font-size: 18px; line-height: 1.45; }
+  .section-divider { background: var(--ink); color: var(--bg); }
+  .section-divider .kicker { font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.18em; font-size: 13px; color: var(--accent-soft); }
+  .section-divider h1 { color: var(--bg); font-size: 64px; }
+  .title-slide { justify-content: center; background: var(--bg); }
+  .title-slide .kicker { font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.18em; font-size: 13px; color: var(--accent); margin-bottom: 18px; }
+  .title-slide h1 { font-size: 64px; line-height: 1.05; max-width: 18ch; }
+  .title-slide .sub { font-size: 22px; color: var(--muted); margin-top: 18px; max-width: 56ch; }
+  .footer { position: absolute; bottom: 18px; left: 72px; right: 72px; display: flex; justify-content: space-between; align-items: baseline; font-family: var(--sans); font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; pointer-events: none; }
+  .footer .progress { flex: 1; height: 2px; background: var(--rule); margin: 0 18px; align-self: center; position: relative; }
+  .footer .progress > div { position: absolute; inset: 0 auto 0 0; background: var(--accent); width: 0%; transition: width 200ms ease; }
+  .nav { position: fixed; bottom: 14px; right: 18px; display: flex; gap: 6px; align-items: center; z-index: 10; }
+  .nav button { font-family: var(--sans); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 6px 10px; background: var(--bg); color: var(--ink); border: 1px solid var(--rule); cursor: pointer; }
+  .nav button:hover { background: var(--accent-soft); }
+  .badge { display: inline-block; font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.12em; font-size: 10px; color: var(--bg); background: var(--accent); padding: 2px 8px; border-radius: 2px; vertical-align: middle; margin-right: 8px; }
+  .small { font-size: 16px; color: var(--muted); }
+  table.matrix { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 17px; }
+  table.matrix th, table.matrix td { border: 1px solid var(--rule); padding: 8px 12px; text-align: left; vertical-align: top; }
+  table.matrix th { background: var(--code-bg); font-family: var(--sans); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+  @media (max-width: 800px) {
+    .slide { padding: 32px 28px 56px; }
+    .slide h1 { font-size: 32px; }
+    .slide h2 { font-size: 24px; }
+    .slide p, .slide li { font-size: 17px; }
+    .two-col { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="deck">
+
+  <!-- 1. Title -->
+  <section class="slide title-slide active">
+    <div class="kicker">Supplement · linear algebra</div>
+    <h1>Linear algebra supplement</h1>
+    <p class="sub" style="font-size: 28px; color: var(--ink); margin-top: 8px; margin-bottom: 18px;">Exercise walkthroughs for the numerical linear algebra track</p>
+    <p class="sub">Companion to the main deck, for groups working in the numerical linear algebra track. The main deck covers the concepts; this supplement walks through the linear-algebra-flavored variant of each exercise and supplies the framing the main deck leaves out.</p>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 2. SECTION: Exercise 1 -->
+  <section class="slide section-divider">
+    <div class="kicker">Exercise 1 · CLAUDE.md</div>
+    <h1>Write your first CLAUDE.md</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Your first contact with file-based collaboration: encode conventions that turn a vague "find the spectrum" into explicit questions, then watch the assistant respect them the second time.</p>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 3. Ex1 framing -->
+  <section class="slide">
+    <h3>Exercise 1 · framing</h3>
+    <h1>Why a linear algebra researcher needs CLAUDE.md</h1>
+    <p>"Find the spectrum" is under-specified in three ways at once. A CLAUDE.md turns each silent guess into an explicit, up-front question.</p>
+    <table class="matrix">
+      <tr><th>Decision</th><th>Why it belongs in CLAUDE.md</th></tr>
+      <tr><td>Matrix type (symmetric? Hermitian? nonsymmetric?)</td><td>Decides <code>eigvalsh</code> vs <code>eigvals</code>, and whether the eigenvalues are even real.</td></tr>
+      <tr><td>Storage (dense / sparse / matrix-free)</td><td>Decides the routine. Densifying a large sparse matrix to reuse a dense solver is the classic blunder.</td></tr>
+      <tr><td>Eigenvalues vs singular values</td><td>They coincide only for symmetric PSD matrices; "spectrum" silently hides which one you meant.</td></tr>
+      <tr><td>Full spectrum vs dominant-k</td><td>All 5000 eigenvalues is rarely the goal; iterative methods give the top few cheaply.</td></tr>
+      <tr><td>Sanity values</td><td>nnz / density / condition number — eyeball-able numbers that catch a wrong-type result.</td></tr>
+    </table>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 4. Ex1 walkthrough -->
+  <section class="slide">
+    <h3>Exercise 1 <span class="badge">15 min</span></h3>
+    <h1>Pin type, storage, and meaning</h1>
+    <ol>
+      <li><code>cd exercises-lin_alg/01-claude-md</code>. Two matrices ship — <code>matrix_A.npy</code> and <code>matrix_B.npz</code>. One is dense, one is sparse; one is symmetric, one is not. Nothing tells you which.</li>
+      <li><b>Phase 1, no CLAUDE.md.</b> Ask: <code>find the spectrum of these matrices</code>. Watch: does Claude identify type + storage first? does it densify the sparse one? does "spectrum" become eigenvalues or singular values — and does it ask, or just guess?</li>
+      <li><b>Phase 2.</b> Write a CLAUDE.md that forces "identify type and storage, then ask eigenvalues-vs-singular-values and full-vs-dominant-k before computing." <code>/clear</code> and re-ask the same prompt.</li>
+      <li>Compare. Claude should now report that A is dense nonsymmetric and B is large sparse symmetric, then ask what you want before touching the data.</li>
+    </ol>
+    <div class="callout">Discussion: which of the three ambiguities can Claude resolve on its own by inspecting the files, and which does it need you to pin in the CLAUDE.md?</div>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 5. Ex1 debrief -->
+  <section class="slide">
+    <h3>Exercise 1 · debrief</h3>
+    <h1>What the CLAUDE.md changed</h1>
+    <p>The payoff is the contrast between the cold run and the run with conventions in place. Use it as a checklist, not an answer key.</p>
+    <table class="matrix">
+      <tr><th>Signal</th><th>Phase 1 (no CLAUDE.md) → Phase 2 (with it)</th></tr>
+      <tr><td>Type + storage</td><td>Assumed silently → reported first (A dense nonsymmetric; B sparse symmetric).</td></tr>
+      <tr><td>Sparse handling</td><td>Densifies <code>matrix_B</code> (5000×5000) → uses <code>eigsh</code>/<code>svds</code>, never densifies.</td></tr>
+      <tr><td>Eigenvalues vs singular values</td><td>Picks one silently → asks which (they differ for the nonsymmetric matrix).</td></tr>
+      <tr><td>Full vs dominant-k</td><td>Dumps all 5000 → asks how many you want.</td></tr>
+    </table>
+    <p class="small" style="margin-top: 8px;">The lesson mirrors the other tracks: the assistant can read what's <i>in</i> the files, but conventions — and the questions worth asking — are on you.</p>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 6. SECTION: Exercise 2 -->
+  <section class="slide section-divider">
+    <div class="kicker">Exercise 2 · plan mode</div>
+    <h1>Plan an SVD of a linear operator</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">The object is not a matrix — it is only a matrix-free action. The deliverable is the <code>plan.md</code>; the lesson is confronting the matrix-free constraint before a line is written.</p>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 7. Ex2 framing -->
+  <section class="slide">
+    <h3>Exercise 2 · framing</h3>
+    <h1>Why plan an SVD you can't form</h1>
+    <p><code>heat_operator.py</code> is one implicit heat step, available only as <code>apply(v)</code>. Planning its SVD forces choices that a "just run svds" reflex skips.</p>
+    <table class="matrix">
+      <tr><th>Decision</th><th>What plan mode forces you to settle in advance</th></tr>
+      <tr><td>Matrix-free reality</td><td>The operator has no dense form. The plan must wrap <code>apply</code> as a <code>LinearOperator</code>, not call <code>np.linalg.svd</code>.</td></tr>
+      <tr><td>How many modes</td><td>Dominant-k, not the full SVD of a 1600-dim implicit operator.</td></tr>
+      <tr><td>Algorithm &amp; cost</td><td><code>svds</code> / randomized SVD — each matvec is one sparse solve, so cost is measured in applies.</td></tr>
+      <tr><td>Parameters</td><td><code>N</code>, <code>dt</code> define the operator; unstated, results aren't comparable.</td></tr>
+      <tr><td>Verification</td><td>A small-<code>N</code> dense cross-check is the cheap way to trust a matrix-free result.</td></tr>
+    </table>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 8. Ex2 principle -->
+  <section class="slide">
+    <h3>Exercise 2 · principle</h3>
+    <h1>Claude is a tool. You are the scientist.</h1>
+    <p>The operator <i>behaves</i> like a matrix — you can hit any vector with it — but you cannot index it, transpose it, or form it densely; each <code>apply</code> is a sparse solve. The assistant will paper over that if you let it: the common failure is a plan that quietly calls <code>np.linalg.svd</code> on a matrix that doesn't exist, or densifies the operator to get one.</p>
+    <p>Your job in plan mode is to force the matrix-free reality — and the choices it implies (how many modes, which algorithm, what parameters) — into the plan up front.</p>
+    <div class="callout">A plan that densifies a matrix-free operator looks perfectly reasonable until you notice the matrix was never supposed to exist. The check has to come from you.</div>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 9. Ex2 walkthrough -->
+  <section class="slide">
+    <h3>Exercise 2 <span class="badge">15 min</span></h3>
+    <h1>Run the exercise</h1>
+    <ol>
+      <li><code>cd exercises-lin_alg/02-planning</code>. Run it for 10 time steps to see the operator drive the physics:
+        <pre>python heat_operator.py --steps 10</pre>
+        A central hot spot diffuses; the peak temperature decays step by step.</li>
+      <li>Press <code>Shift+Tab</code> twice to enter plan mode.</li>
+      <li>Paste the prompt and submit — do <i>not</i> approve yet. It carries a matrix-free scope clause:
+        <pre>Plan a singular value decomposition of the linear operator in
+heat_operator.py. The operator is matrix-free: it exposes only
+apply(v). Do not form or densify the matrix.</pre>
+      </li>
+      <li>Read the plan against four questions: <b>matrix-free?</b> <b>dominant-k?</b> <b>algorithm + cost?</b> <b>parameters pinned?</b> Push back on at least one.</li>
+      <li>Save it to <code>plan.md</code> — that file is the deliverable.</li>
+    </ol>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 10. Ex2 debrief -->
+  <section class="slide">
+    <h3>Exercise 2 · debrief</h3>
+    <h1>What a plan worth approving contains</h1>
+    <p>A plan that survives review pins each choice the matrix-free constraint forces. Read it against this checklist.</p>
+    <table class="matrix">
+      <tr><th>Look for</th><th>Why it matters</th></tr>
+      <tr><td>Keeps the operator matrix-free (wraps <code>apply</code> as a <code>LinearOperator</code>)</td><td>Densifying it defeats the whole exercise.</td></tr>
+      <tr><td>Dominant-k, not the full SVD</td><td>The full SVD of an implicit operator is neither cheap nor wanted.</td></tr>
+      <tr><td>Names the algorithm and its cost</td><td>Each <code>svds</code> matvec is one sparse solve.</td></tr>
+      <tr><td>Pins <code>N</code> and <code>dt</code></td><td>The SVD is of <i>this</i> discretization; unstated params aren't reproducible.</td></tr>
+      <tr><td>Plans a small-<code>N</code> dense cross-check</td><td>The cheap way to trust the matrix-free result.</td></tr>
+    </table>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 11. Ex2 closing -->
+  <section class="slide">
+    <h3>Exercise 2 · closing</h3>
+    <h1>What plan mode is really for</h1>
+    <p>Plan mode produces text. The value isn't the text — it's the questions the <i>act</i> of planning forces you to answer while redirection is still cheap. On a matrix-free operator, the first of those questions is the one the assistant most wants to skip: you cannot form this matrix, so how will you decompose it? Approve the plan only once it answers that on your terms.</p>
+    <div class="callout">Take the conventions you found yourself imposing back to your <code>CLAUDE.md</code> — the next exercise builds on that file again.</div>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 12. SECTION: Exercise 3 -->
+  <section class="slide section-divider">
+    <div class="kicker">Exercise 3 · skills</div>
+    <h1>Package singular-value methods as skills</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">One computation, two algorithms, split by storage. The check is the pretext; the skill is the artifact Claude routes to by description.</p>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 13. Ex3 framing -->
+  <section class="slide">
+    <h3>Exercise 3 · framing</h3>
+    <h1>Why a skill (and not just a function)?</h1>
+    <p>Two skills — <code>qr-iteration</code> (dense) and <code>lanczos</code> (sparse or matrix-free) — split "find the singular values" by <b>storage</b>. Four properties earn them their keep over a private function.</p>
+    <table class="matrix">
+      <tr><th>Property</th><th>Why it earns the skill its keep</th></tr>
+      <tr><td>Triggered by description, not import</td><td>Claude routes a plain request to the skill via its <code>description:</code> — you don't name the file.</td></tr>
+      <tr><td>Stateless and deterministic</td><td>Same object, same singular values. No external service, no license dance.</td></tr>
+      <tr><td>Versioned in the repo</td><td><code>git clone</code> brings the team's QR and Lanczos routines along, no per-developer setup.</td></tr>
+      <tr><td>The description is the contract</td><td>Extend the helper and the description must change too, or the new capability is invisible to routing.</td></tr>
+    </table>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 14. Ex3 walkthrough -->
+  <section class="slide">
+    <h3>Exercise 3 <span class="badge">15 min</span></h3>
+    <h1>Run the exercise</h1>
+    <ol>
+      <li><code>cd exercises-lin_alg/03-skills</code>. Install the skills:
+        <pre>mkdir -p .claude
+cp -R skills .claude/</pre>
+        <code>problem.py</code> exposes the three objects from Exercises 01–02.</li>
+      <li>Ask — <b>without naming a skill</b> (routing is what's tested):
+        <pre>using problem.py, find the singular values of the dense matrix,
+the sparse matrix, and the operator.</pre>
+        Claude should route <b>qr-iteration</b> to the dense matrix and <b>lanczos</b> to the sparse matrix and the operator.</li>
+      <li>Point the <i>wrong</i> skill at an object — run <code>qr-iteration</code> on the sparse matrix. The helper refuses ("this object is sparse — use the lanczos skill"). The guardrail is the lesson: the algorithm has to match the storage.</li>
+    </ol>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 15. Ex3 debrief -->
+  <section class="slide">
+    <h3>Exercise 3 · debrief</h3>
+    <h1>What you should see</h1>
+    <p>Read Claude's <i>behavior</i> as much as the skills' output.</p>
+    <table class="matrix">
+      <tr><th>What you should see</th><th>What to push back on</th></tr>
+      <tr><td>Routes QR to the dense matrix, Lanczos to the sparse matrix and the operator.</td><td>One algorithm for everything — the storage decides the method.</td></tr>
+      <tr><td>Runs the skill's helper.</td><td>Computes <code>np.linalg.svd</code> inline — no more trustworthy than a one-shot.</td></tr>
+      <tr><td>Keeps the operator matrix-free (LinearOperator).</td><td>Densifies the operator to call a dense SVD.</td></tr>
+      <tr><td>The guard fires when the wrong skill meets an object.</td><td>Forcing a dense tool onto a sparse matrix.</td></tr>
+    </table>
+    <p class="small" style="margin-top: 8px;">The operator's singular values match Exercise 02 exactly — same object, reached through the skill.</p>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 16. Ex3 closing -->
+  <section class="slide">
+    <h3>Exercise 3 · closing</h3>
+    <h1>Skills as your team's checklists</h1>
+    <p>Every group re-derives a small set of computations each project — QR and Lanczos SVDs, condition-number probes, residual fits. Skills are where those earn back their authorship cost: the price is a <code>SKILL.md</code> and a script; the payoff is that everyone, and every future Claude session, runs the same method the same way.</p>
+    <div class="callout">If you remember one rule about skills: <b>the description is the contract</b>. Extend a skill and update its description in the same commit — otherwise the new capability is invisible to natural-language routing.</div>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 17. SECTION: Exercise 4 -->
+  <section class="slide section-divider">
+    <div class="kicker">Exercise 4 · MEMORY.md</div>
+    <h1>Bootstrap a MEMORY.md from lab notebooks</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">MEMORY.md is how <i>this</i> session leaves something behind for the <i>next</i> one. The synthesis is the pretext; the file is the artifact.</p>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 18. Ex4 framing -->
+  <section class="slide">
+    <h3>Exercise 4 · framing</h3>
+    <h1>Why a MEMORY.md (and not just more CLAUDE.md)?</h1>
+    <p>Both are markdown files at the project root, both read on session start. They answer different questions, and confusing the two is the most common decay path for both.</p>
+    <table class="matrix">
+      <tr><th>Question</th><th>Answer</th></tr>
+      <tr><td>What does <code>CLAUDE.md</code> answer?</td><td><i>How does this project work.</i> Stack, conventions, hard rules.</td></tr>
+      <tr><td>What does <code>MEMORY.md</code> answer?</td><td><i>What have we learned.</i> Decisions, parameters (rank 8, cadence 10), dead ends, open questions.</td></tr>
+      <tr><td>Growth pattern</td><td><code>CLAUDE.md</code> changes rarely; <code>MEMORY.md</code> grows as experiments accumulate.</td></tr>
+      <tr><td>The test</td><td>If knowing a fact depends on <i>having run experiments</i>, it belongs in <code>MEMORY.md</code>. Otherwise <code>CLAUDE.md</code>.</td></tr>
+    </table>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 19. Ex4 walkthrough -->
+  <section class="slide">
+    <h3>Exercise 4 <span class="badge">10 min</span></h3>
+    <h1>Run the exercise</h1>
+    <ol>
+      <li><code>cd exercises-lin_alg/04-memory</code> — three dated notebooks (a heat-equation testbench with an SVD preconditioner re-initialized every 10 steps). A writing exercise; no environment needed.</li>
+      <li>Paste:
+        <pre>Read everything under notebooks/ and produce MEMORY.md with the
+sections Decisions, Parameters, Dead Ends, Open Questions — each
+entry citing the notebook it came from.</pre>
+      </li>
+      <li><b>Trim aggressively.</b> Drop anything a future session wouldn't consult; if it's longer than the notebooks combined, that's copying, not synthesis.</li>
+      <li>Use it to pick a next experiment — <code>Given MEMORY.md, what's the most informative next experiment? Justify in two sentences.</code> A good answer cites a specific entry.</li>
+      <li>Close with the two-minute ritual: <code>append a dated entry to MEMORY.md and overwrite STATUS.md</code>.</li>
+    </ol>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 20. Ex4 debrief -->
+  <section class="slide">
+    <h3>Exercise 4 · debrief</h3>
+    <h1>What a good synthesis looks like</h1>
+    <p>The exercise tests <i>editorial</i> judgment more than computation. Read the synthesized file and the next-experiment answer against this checklist.</p>
+    <table class="matrix">
+      <tr><th>What a good synthesis does</th><th>What to push back on</th></tr>
+      <tr><td>Cites the source notebook on every entry.</td><td>"See notebooks" or no citations at all.</td></tr>
+      <tr><td>Comes in well under the combined length of the notebooks.</td><td>Longer than the inputs — re-typing, not synthesis.</td></tr>
+      <tr><td>Dead Ends keep the <i>reason</i> a path was abandoned.</td><td>Verdict only ("abandoned per-step re-init") — the 2.4×-slower reason is what stops the re-attempt.</td></tr>
+      <tr><td>Next-experiment answer names a specific entry.</td><td>Generic "study convergence more."</td></tr>
+      <tr><td>Surfaces the cadence trade-off (10 works; 1 and 40 fail).</td><td>Smoothing it to "re-init periodically" — that destroys the most valuable finding.</td></tr>
+    </table>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 21. Ex4 closing -->
+  <section class="slide">
+    <h3>Exercise 4 · closing</h3>
+    <h1>MEMORY.md as next-session inheritance</h1>
+    <p>Every session is downstream of a hundred forgotten ones — your own from last month, your colleagues', the one you'll resume on a different machine in three weeks. <code>MEMORY.md</code> is the file that decides what the next session knows. Without it, every resumption pays the same "what was I working on" tax.</p>
+    <div class="callout">The two-minute end-of-session ritual is the workshop's most lopsided ROI move: <code>append a dated entry to MEMORY.md, overwrite STATUS.md with where we are now</code>. Two minutes now; saves the first ten minutes of the next session, every time.</div>
+    <div class="footer"><span>Linear algebra supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button id="prev" title="Previous (←)">‹</button>
+  <span class="nav-label">slide</span>
+  <input class="jump-to" id="jump" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="#">
+  <button id="next" title="Next (→ or Space)">›</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    document.querySelectorAll('.footer .progress > div').forEach(b => b.style.width = ((i + 1) / slides.length * 100) + '%');
+    document.querySelectorAll('.footer .counter').forEach(c => c.textContent = (i + 1) + ' / ' + slides.length);
+  }
+  document.getElementById('prev').onclick = () => show(i - 1);
+  document.getElementById('next').onclick = () => show(i + 1);
+  document.addEventListener('keydown', e => {
+    if (document.activeElement.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight' || e.key === ' ') { show(i + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { show(i - 1); e.preventDefault(); }
+  });
+  document.getElementById('jump').addEventListener('change', e => {
+    const n = parseInt(e.target.value, 10);
+    if (!isNaN(n)) show(n - 1);
+    e.target.value = '';
+  });
+  show(0);
+</script>
+</body>
+</html>
