@@ -38,7 +38,7 @@ This is a large image (~3 GB compressed). Pull it on a decent connection before 
 Then, **from inside this exercise folder**, run the container with your folder bind-mounted in and Jupyter's port forwarded to your host:
 
 ```
-cd /path/to/exercises-pde/01-claude-md
+cd /path/to/[CURRENT DIRECTORY]
 docker run -it --rm \
     -v "$PWD":/home/firedrake/work \
     -w /home/firedrake/work \

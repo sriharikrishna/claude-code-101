@@ -80,7 +80,7 @@
     <div class="kicker">Supplement · numerical PDEs</div>
     <h1>Numerical PDEs supplement</h1>
     <p class="sub" style="font-size: 28px; color: var(--ink); margin-top: 8px; margin-bottom: 18px;">Exercise walkthroughs for the FEM track</p>
-    <p class="sub">Companion to the main workshop deck. Slot in this supplement during the exercise blocks if your group is working in the FEM track. The main deck covers the concepts (CLAUDE.md, plans, MEMORY.md, skills, MCP); this supplement walks through the FEM-flavored variant of each exercise and supplies the framing the main deck deliberately leaves out.</p>
+    <p class="sub">Companion to the main deck, for groups working in the FEM track. The main deck covers the concepts; this supplement walks through the FEM-flavored variant of each exercise and supplies the framing the main deck leaves out.</p>
     <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -88,7 +88,7 @@
   <section class="slide section-divider">
     <div class="kicker">Exercise 1 · CLAUDE.md</div>
     <h1>Write your first CLAUDE.md</h1>
-    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Your first contact with file-based collaboration. Encode your conventions for an FEM convergence study in a single markdown file, then watch the assistant respect them on the second try.</p>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Your first contact with file-based collaboration: encode your conventions for an FEM convergence study in one markdown file, then watch the assistant respect them the second time.</p>
     <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -96,7 +96,7 @@
   <section class="slide">
     <h3>Exercise 1 · framing</h3>
     <h1>Why an FEM author needs CLAUDE.md</h1>
-    <p>Numerical PDE work is full of recurring micro-decisions — small, stable choices that shape every result and that you don't want to re-justify in every prompt. CLAUDE.md is where those live.</p>
+    <p>Numerical PDE work is full of recurring micro-decisions — small, stable choices that shape every result. CLAUDE.md is where they live, so you don't re-justify them every prompt.</p>
     <table class="matrix">
       <tr><th>Decision</th><th>Why it belongs in CLAUDE.md</th></tr>
       <tr><td>Mesh source and format</td><td>Pinned upstream by your geometry pipeline. Letting the assistant pick a different format mid-project breaks reproducibility.</td></tr>
@@ -111,7 +111,7 @@
 
   <!-- 4. Exercise 1 walkthrough -->
   <section class="slide">
-    <h3>Exercise 1 <span class="badge">10 min</span></h3>
+    <h3>Exercise 1 <span class="badge">15 min</span></h3>
     <h1>Write your own CLAUDE.md</h1>
     <ol>
       <li>Open the exercise folder: <code>cd exercises-pde/01-claude-md/</code></li>
@@ -236,7 +236,7 @@ The polynomial order is fixed at P1; only the mesh is in scope.</pre>
     <table class="matrix">
       <tr><th>Property</th><th>Why it earns the skill its keep</th></tr>
       <tr><td>Triggered by description, not import</td><td>Claude routes a natural-language prompt to the skill via the <code>description:</code> field — you do not tell it which file to run.</td></tr>
-      <tr><td>Stateless and deterministic</td><td>Same input gives the same output. No external service to be down, no license dance — unlike an MCP.</td></tr>
+      <tr><td>Stateless and deterministic</td><td>Same input gives the same output. No external service to be down, no license dance.</td></tr>
       <tr><td>Versioned in the repo</td><td>The check travels with the project. <code>git clone</code> brings the team's CFL check along, no per-developer setup.</td></tr>
       <tr><td>The description is the contract</td><td>Extend the helper and the description must change too. An extension that does not change the description is invisible to future natural-language requests.</td></tr>
     </table>
@@ -359,74 +359,6 @@ MEMORY.md, and overwrite STATUS.md with where we are now.</pre>
     <h1>MEMORY.md as next-session inheritance</h1>
     <p>Every session is downstream of a hundred forgotten ones — your own from last month, your colleagues', the one you'll resume on a different machine in three weeks. <code>MEMORY.md</code> is the file that decides what the next session knows. Without it, every resumption pays the same "what was I working on" tax.</p>
     <div class="callout">The two-minute end-of-session ritual is the workshop's most lopsided ROI move: <code>append a dated entry to MEMORY.md, overwrite STATUS.md with where we are now</code>. Two minutes now; saves the first ten minutes of the next session, every time.</div>
-    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <section class="slide section-divider">
-    <div class="kicker">Exercise 5 · MCP</div>
-    <h1>Wrap a small Laplace solver as an MCP server</h1>
-    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">An MCP exposes a capability to <i>every</i> future session in this project. Register once; invoke by tool name forever.</p>
-    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- Exercise 5 · framing -->
-  <section class="slide">
-    <h3>Exercise 5 · framing</h3>
-    <h1>MCP vs skill vs <code>CLAUDE.md</code> note</h1>
-    <p>Three places to put a capability. They overlap, but each one earns its keep in a different regime.</p>
-    <table class="matrix">
-      <tr><th>Mechanism</th><th>When it earns its keep</th></tr>
-      <tr><td><code>CLAUDE.md</code> note</td><td>One-shot conventions ("we use <code>dx(degree=4)</code> for non-polynomial integrands"). No code needed; Claude reads <code>CLAUDE.md</code> every session.</td></tr>
-      <tr><td>Skill</td><td>Stateless, reusable inside this project, ships in the repo. The CFL-check skill from Exercise 3 is the canonical shape.</td></tr>
-      <tr><td>MCP</td><td>Persistent state worth keeping warm across calls; or it talks to something Claude can't run inline; or it needs to be available to many sessions across many projects.</td></tr>
-    </table>
-    <div class="callout" style="background: #8a1f1f; color: #fbfaf6; border-left-color: #4a0e0e; font-weight: 500;">The toy in this exercise is honestly <i>skill-shaped</i> — the MCP shell is what's being taught. The stretch (Firedrake-in-Docker with a warm JIT cache) is where the persistent-state justification actually bites.</div>
-    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- Exercise 5 · walkthrough -->
-  <section class="slide">
-    <h3>Exercise 5 <span class="badge">15 min</span></h3>
-    <h1>Run the exercise</h1>
-    <ol>
-      <li><code>cd exercises-pde/05-mcp</code> and <code>pip install -r requirements.txt</code>. Pure Python — no Docker for the main flow.</li>
-      <li>Register the server:
-        <pre>claude mcp add toy-laplace -- python3 "$(pwd)/laplace_mcp.py"</pre>
-        Confirm with <code>claude mcp list</code>.
-        <p style="color: #8a1f1f; font-weight: 500; font-size: 16px; margin: 6px 0 0;">⚠ Verify before running live: older <code>claude</code> versions used <code>--command</code>/<code>--args</code> flags instead of the <code>--</code> separator shown here. Run <code>claude mcp add --help</code> to confirm the syntax on your install. On Homebrew macOS, only <code>python3</code> is on PATH (no <code>python</code>).</p>
-      </li>
-      <li>Launch <code>claude</code> in this directory and paste:
-        <pre>Solve the Poisson problem described in problem.json using the
-toy-laplace MCP and print the structured result.</pre>
-      </li>
-      <li>Watch the call cross the wire. Note the exact arguments and the structured payload — <i>that</i> is the audit trail an MCP buys you.</li>
-      <li>Edit <code>problem.json</code> (bump <code>n</code> to 64, or change the RHS) and re-prompt. Confirm Claude re-calls the MCP rather than recycling the prior answer.</li>
-    </ol>
-    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- Exercise 5 · debrief -->
-  <section class="slide">
-    <h3>Exercise 5 · debrief</h3>
-    <h1>What "MCP routing" looks like</h1>
-    <p>The artifact to inspect is not the answer — it is the <i>call</i>. Read what Claude did against this checklist.</p>
-    <table class="matrix">
-      <tr><th>Good routing</th><th>What to push back on</th></tr>
-      <tr><td>Calls <code>toy-laplace:solve_laplace</code> by name.</td><td>Computes the answer inline with <code>scipy</code> — bypasses the MCP entirely.</td></tr>
-      <tr><td>Arguments at the wire match <code>problem.json</code> verbatim.</td><td>Rounded <code>n</code>, simplified RHS, or <code>bc = 0</code> in place of <code>0.0</code>.</td></tr>
-      <tr><td>Reports the structured payload verbatim alongside any prose.</td><td>Paraphrases as "max ≈ 1, looks right" and drops the JSON.</td></tr>
-      <tr><td>Re-calls the MCP when <code>problem.json</code> changes.</td><td>Recycles the prior answer — treats the first call as a memo, not a tool.</td></tr>
-      <tr><td>Treats the MCP as the source of truth.</td><td>Cross-checks with an inline scipy solve, then second-guesses the MCP.</td></tr>
-    </table>
-    <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- Exercise 5 · closing -->
-  <section class="slide">
-    <h3>Exercise 5 · closing</h3>
-    <h1>MCP = capability that survives the session</h1>
-    <p>The artifact this exercise produced is not the Laplace solver. It is the <i>registered tool name</i> — <code>toy-laplace:solve_laplace</code> — that any future session in this folder can invoke without setup, without re-explaining, without re-implementing.</p>
-    <div class="callout">The stretch is where the design compounds: a warm Firedrake worker amortizes the JIT cost across every call in a session. That is the regime where <i>"MCP, not skill"</i> stops being a teaching point and starts being the design that actually wins. The capstone (Exercise 6) is where multiple MCPs meet in a single workflow.</div>
     <div class="footer"><span>PDE supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 

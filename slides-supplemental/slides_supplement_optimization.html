@@ -80,7 +80,7 @@
     <div class="kicker">Supplement · optimization</div>
     <h1>Optimization supplement</h1>
     <p class="sub" style="font-size: 28px; color: var(--ink); margin-top: 8px; margin-bottom: 18px;">Exercise walkthroughs for the optimization track</p>
-    <p class="sub">Companion to the main workshop deck. Slot in this supplement during the exercise blocks if your group is working in the optimization track. The main deck covers the concepts (CLAUDE.md, plans, MEMORY.md, skills, MCP); this supplement walks through the optimization-flavored variant of each exercise and supplies the framing the main deck deliberately leaves out.</p>
+    <p class="sub">Companion to the main deck, for groups working in the optimization track. The main deck covers the concepts; this supplement walks through the optimization-flavored variant of each exercise and supplies the framing the main deck leaves out.</p>
     <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -88,7 +88,7 @@
   <section class="slide section-divider">
     <div class="kicker">Exercise 1 · CLAUDE.md</div>
     <h1>Write your first CLAUDE.md</h1>
-    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Your first contact with file-based collaboration. Encode your conventions for a small SciPy optimization in a single markdown file, then watch the assistant respect them on the second try.</p>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Your first contact with file-based collaboration: encode your conventions for a small optimization in one markdown file, then watch the assistant respect them the second time.</p>
     <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -96,7 +96,7 @@
   <section class="slide">
     <h3>Exercise 1 · framing</h3>
     <h1>Why an optimization researcher needs CLAUDE.md</h1>
-    <p>Optimization research is full of recurring micro-decisions — small, stable choices that shape every result and that you don't want to re-justify in every prompt. CLAUDE.md is where those live.</p>
+    <p>Optimization research is full of recurring micro-decisions — small, stable choices that shape every result. CLAUDE.md is where they live, so you don't re-justify them every prompt.</p>
     <table class="matrix">
       <tr><th>Decision</th><th>Why it belongs in CLAUDE.md</th></tr>
       <tr><td>Variable naming (primal, dual, multipliers)</td><td>Pinned by the math. Letting the assistant pick its own letters mid-project breaks readability across files and notes.</td></tr>
@@ -109,43 +109,113 @@
     <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
-  <!-- 4. Exercise 1 walkthrough — moved verbatim from slides_edited.html (former slide 12) -->
+  <!-- 4. Exercise 1 walkthrough -->
   <section class="slide">
-    <h3>Exercise 1 <span class="badge">10 min</span></h3>
-    <h1>Write your own CLAUDE.md</h1>
+    <h3>Exercise 1 <span class="badge">15 min</span></h3>
+    <h1>Let /init discover your conventions</h1>
     <ol>
-      <li><code>cd exercises/01-claude-md/</code></li>
-      <li>Read the included <code>rosenbrock.py</code> — a deliberately under-tested SciPy solve.</li>
-      <li>Run <code>claude</code> and ask: <code>/init</code>. Read the generated CLAUDE.md.</li>
-      <li>Edit it. Add: project goal, your preferred tolerance, and one "don't" rule.</li>
-      <li>Then ask Claude: <code>add a convergence plot for rosenbrock.py using our conventions</code>.</li>
+      <li>Open the exercise folder: <code>cd exercises-opt/01-claude-md/</code></li>
+      <li>Read <code>max_conopt.py</code> — a deliberately <i>mysterious</i> constrained optimization (the COPS 3.0 max-area polygon, solved with <code>unopy</code> + multistart). It has no plot, and its docs describe the interface but omit what the variables <i>mean</i> geometrically.</li>
+      <li><b>Phase 1, with no CLAUDE.md.</b> Run <code>claude</code> and ask: <code>add a conopt solution plot and a convergence plot to max_conopt.py</code>. Watch for tells that Claude doesn't know the coordinates are polar: does it plot <code>u, v</code> as raw x/y? do axes run to ~π? is the polygon left open?</li>
+      <li><b>Phase 2.</b> Download the COPS 3.0 PDF, <code>/clear</code>, then run <code>/init</code>. Read the generated CLAUDE.md — did it deduce the polar coordinate system and the conversion formula straight from the code?</li>
+      <li>Re-ask the exact same prompt and compare Phase 1 vs Phase 2.</li>
     </ol>
-    <div class="callout">Discussion: did Claude follow your conventions? What did it miss? Add the missing rule to CLAUDE.md and try again — that's the whole loop.</div>
+    <div class="callout">Discussion: which formula let <code>/init</code> infer the coordinate system? And what would you still have to add by hand that <code>/init</code> can't infer — figure conventions, solver output, house style?</div>
     <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
   <!-- 5. Exercise 1 — what to look for -->
   <section class="slide">
     <h3>Exercise 1 · debrief</h3>
-    <h1>What to look for in Claude's output</h1>
-    <p>The improvement that respects a well-written CLAUDE.md should look something like this. Use it as a checklist, not an answer key.</p>
+    <h1>What /init changed between the two tries</h1>
+    <p>The payoff is the contrast. With only the thin docs, Claude guesses; after <code>/init</code> reads the source, it inherits the geometry. Use this as a checklist, not an answer key.</p>
     <table class="matrix">
-      <tr><th>Convention you wrote</th><th>What it produces in the code</th></tr>
-      <tr><td>Tolerance pinned (e.g., 1e-8)</td><td>Solver call passes <code>tol=1e-8</code> rather than defaulting silently. Iteration count and final gradient norm reported in the script's output.</td></tr>
-      <tr><td>Convergence plot conventions</td><td>Semilog y-axis on ‖∇f‖, linear x-axis on iteration count, with axis labels matching what your CLAUDE.md specified.</td></tr>
-      <tr><td>Figures saved, never shown</td><td>No <code>plt.show()</code>; output goes to <code>figures/convergence.pdf</code> (or whatever path you pinned).</td></tr>
-      <tr><td>Gradient history captured</td><td>A callback passed to <code>minimize</code> that records ‖∇f‖ at each iteration, then plotted — not a hand-rolled second solve.</td></tr>
-      <tr><td>"Don't" rule respected</td><td>Whatever you forbade (e.g., no extra imports, no <code>scipy.optimize.minimize</code> for constrained problems) actually doesn't appear in the diff.</td></tr>
+      <tr><th>Signal</th><th>Phase 1 (no context) → Phase 2 (after /init)</th></tr>
+      <tr><td>Coordinate system</td><td>Plots <code>u, v</code> as raw x/y → converts polar <code>(r, θ)</code> to Cartesian, so the shape reads as an actual polygon.</td></tr>
+      <tr><td>Closed polygon</td><td>Last vertex left dangling → polygon closed, with the fixed final vertex placed where the problem pins it.</td></tr>
+      <tr><td>Convergence plot</td><td>Generic loss-vs-iteration → the multistart staircase, best objective improving in steps across restarts.</td></tr>
+      <tr><td>What <code>/init</code> inferred</td><td>The polar meaning of the variables, deduced from what the area objective and the diameter constraint have in common.</td></tr>
+      <tr><td>What <code>/init</code> could not infer</td><td>Figure paths and format, solver-output preferences, house style — those you still add to CLAUDE.md by hand.</td></tr>
     </table>
-    <p class="small" style="margin-top: 8px;">If Claude missed a convention on the first try, add a sharper rule and ask again — that's the whole loop.</p>
+    <p class="small" style="margin-top: 8px;">The lesson mirrors the FEM track's: <code>/init</code> recovers the math that lives in the code; conventions and safety rules are always on you.</p>
     <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
-  <!-- 6. SECTION: Exercise 2 — PLACEHOLDER -->
+  <!-- 6. SECTION: Exercise 2 -->
   <section class="slide section-divider">
-    <div class="kicker">Exercise 2 · plan mode · TODO</div>
-    <h1>Find an optimization example that mirrors the PDE example well</h1>
-    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Placeholder — fill before running this supplement.</p>
+    <div class="kicker">Exercise 2 · plan mode</div>
+    <h1>Plan a small NLP before writing it</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Here the deliverable is the <i>plan</i>, not code. Plan mode is the method; the <code>plan.md</code> you'd be comfortable approving is the artifact. Fifteen minutes deciding what to pin before any compute is spent.</p>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 7. Why a plan first -->
+  <section class="slide">
+    <h3>Exercise 2 · framing</h3>
+    <h1>Why a plan first for a from-scratch model</h1>
+    <p>Building a new model is not like fixing a known one — there is no textbook answer to recite. Instead the work hides dozens of small modeling decisions, and plan mode is what forces them into the open before any get silently baked into code.</p>
+    <table class="matrix">
+      <tr><th>Decision</th><th>What plan mode forces you to settle in advance</th></tr>
+      <tr><td>Covariance handling</td><td>How <code>Σ</code> is loaded and validated PSD. A silent eigenvalue clip or ridge changes the problem — and your reported risk.</td></tr>
+      <tr><td>Parameterization</td><td>Whether <code>τ</code> and <code>K</code> are arguments or hardcoded. Sweeping <code>τ</code> is the whole exercise; a baked-in value can't move.</td></tr>
+      <tr><td>Complementarity constraint</td><td>How <code>wᵀ(1−z) ≤ 0</code> is enforced. A big-M, smoothing, or top-K substitution turns the cardinality model into a different, easier one.</td></tr>
+      <tr><td>Benchmark schema</td><td>The CSV columns and path — one row per <code>τ</code>, named fields, configurable location — decided before, not during.</td></tr>
+      <tr><td>Solver &amp; gap definition</td><td>Which UNO solver, and what "optimality gap" means for a nonconvex MPCC. Unstated, the recorded numbers aren't comparable.</td></tr>
+    </table>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 8. Claude is a tool -->
+  <section class="slide">
+    <h3>Exercise 2 · principle</h3>
+    <h1>Claude is a tool. You are the scientist.</h1>
+    <p>On a greenfield model there is no rehearsed answer for the assistant to recall — but that does not make it safe. It will quietly pick a default for every modeling decision the prompt leaves open: how to enforce complementarity, which solver to call, how to condition the covariance, what "converged" means. Any of those defaults can turn the problem you posed into a different, easier one.</p>
+    <p>Your job in plan mode is to decide <i>which decisions you must own</i> and pin them in the prompt or during iteration — the "keep the model exactly as formulated; flag, don't silently reformulate" clause is one example. When you catch yourself imposing the same structure every session, promote it into your <code>CLAUDE.md</code>.</p>
+    <div class="callout">The danger isn't that Claude flounders — it's that a silent modeling substitution looks exactly like a correct plan until you check. The check has to come from you.</div>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 9. Run the exercise -->
+  <section class="slide">
+    <h3>Exercise 2 <span class="badge">15 min</span></h3>
+    <h1>Run the exercise</h1>
+    <ol>
+      <li><code>cd exercises-opt/02-planning &amp;&amp; claude</code>. The problem: sparse mean-variance portfolio selection with a cardinality constraint, modeled as complementarity (data in <code>nlp_seed.py</code>).</li>
+      <li>Press <code>Shift+Tab</code> twice to enter plan mode (look for the indicator at the bottom of the screen).</li>
+      <li>Paste the prompt and submit. Do <i>not</i> approve yet — it asks for a unopy formulation, a Pareto sweep over <code>τ</code>, a benchmarking harness to CSV, and a risk/return plot, and it carries a scope clause:
+        <pre>… Keep the model exactly as formulated in nlp_seed.py: do not
+relax, smooth, or reformulate the complementarity constraint, and
+do not switch solver families. If a reformulation is necessary,
+flag it in the plan rather than adopting it silently.</pre>
+      </li>
+      <li>Read the plan against the checklist: <b>Σ validated PSD? τ/K parameterized? complementarity kept intact? CSV schema + path? solver &amp; gap defined?</b> Push back on at least one.</li>
+      <li>Save it: ask Claude to write the plan to <code>plan.md</code>. That file is the deliverable.</li>
+    </ol>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 10. Debrief -->
+  <section class="slide">
+    <h3>Exercise 2 · debrief</h3>
+    <h1>What a plan worth approving contains</h1>
+    <p>A plan that survives review on this exercise pins each decision the prompt left open, and bounds its own scope. Read it against this checklist.</p>
+    <table class="matrix">
+      <tr><th>Look for</th><th>Why it matters</th></tr>
+      <tr><td>Σ loaded and validated PSD</td><td>A non-PSD covariance silently changes the problem.</td></tr>
+      <tr><td><code>τ</code> and <code>K</code> parameterized</td><td>The Pareto sweep depends on it; hardcoded values can't move.</td></tr>
+      <tr><td>Complementarity enforced as written</td><td>Watch for a silent relaxation that makes the model easier.</td></tr>
+      <tr><td>CSV path + schema fixed</td><td>Output you can't relocate, or whose columns drift, is unusable across runs.</td></tr>
+      <tr><td>Scope bounded</td><td>A good plan names what it isn't doing, so scope doesn't creep during implementation.</td></tr>
+    </table>
+    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- 11. Closing -->
+  <section class="slide">
+    <h3>Exercise 2 · closing</h3>
+    <h1>What plan mode is really for</h1>
+    <p>Plan mode produces text. The value isn't the text — it's the modeling questions the <i>act</i> of planning forces you to answer while redirection is still cheap. On a from-scratch model those are exactly the questions Claude would otherwise answer for you, silently, with a plausible default. Approve the plan only once it is <i>your</i> model on the page.</p>
+    <div class="callout">Take the conventions you found yourself imposing back to your <code>CLAUDE.md</code> — the next exercise builds on that file again.</div>
     <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -165,7 +235,7 @@
     <table class="matrix">
       <tr><th>Property</th><th>Why it earns the skill its keep</th></tr>
       <tr><td>Triggered by description, not import</td><td>Claude routes a natural-language prompt to the skill via the <code>description:</code> field — you do not tell it which file to run.</td></tr>
-      <tr><td>Stateless and deterministic</td><td>Same input gives the same output. No external service to be down, no license dance — unlike an MCP.</td></tr>
+      <tr><td>Stateless and deterministic</td><td>Same input gives the same output. No external service to be down, no license dance.</td></tr>
       <tr><td>Versioned in the repo</td><td>The check travels with the project. <code>git clone</code> brings the team's KKT check along, no per-developer setup.</td></tr>
       <tr><td>The description is the contract</td><td>Extend the helper and the description must change too. An extension that does not change the description is invisible to future natural-language requests.</td></tr>
     </table>
@@ -177,7 +247,7 @@
     <h3>Exercise 3 <span class="badge">15 min</span></h3>
     <h1>Run the exercise</h1>
     <ol>
-      <li><code>cd exercises/03-skills</code></li>
+      <li><code>cd exercises-opt/03-skills</code></li>
       <li>Install the skills into the project-local hidden directory:
         <pre>mkdir -p .claude
 cp -R skills .claude/</pre>
@@ -218,78 +288,76 @@ defined in problem.py.</pre>
     <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
-  <!-- Exercise 4 · placeholder -->
+  <!-- Exercise 4 · section divider -->
   <section class="slide section-divider">
-    <div class="kicker">Exercise 4 · MEMORY.md · TODO</div>
-    <h1>Adapt the optimization-track MEMORY.md exercise</h1>
-    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Placeholder — fill before running this supplement. The PDE-track Ex04 uses three dated FEM lab notebooks (convergence study, L-shape graded refinement, graded-mesh + wave dead end) synthesized into a four-section MEMORY.md, with a next-experiment prompt and the end-of-session ritual that overwrites STATUS.md. The optimization-track analog needs its own notebooks and synthesis target.</p>
+    <div class="kicker">Exercise 4 · MEMORY.md</div>
+    <h1>Bootstrap a MEMORY.md from project plans</h1>
+    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">MEMORY.md is how <i>this</i> session leaves something behind for the <i>next</i> one. The synthesis is the pretext; the file is the artifact.</p>
     <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
-  <section class="slide section-divider">
-    <div class="kicker">Exercise 5 · MCP</div>
-    <h1>Wrap a toy QP solver as an MCP server</h1>
-    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">An MCP exposes a capability to <i>every</i> future session in this project. Register once; invoke by tool name forever.</p>
-    <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- Exercise 5 · framing -->
+  <!-- Exercise 4 · framing -->
   <section class="slide">
-    <h3>Exercise 5 · framing</h3>
-    <h1>MCP vs skill vs <code>CLAUDE.md</code> note</h1>
-    <p>Three places to put a capability. They overlap, but each one earns its keep in a different regime.</p>
+    <h3>Exercise 4 · framing</h3>
+    <h1>Why a MEMORY.md (and not just more CLAUDE.md)?</h1>
+    <p>Both are markdown files at the project root, both read by Claude on session start. They answer different questions, and confusing the two is the most common decay path for both.</p>
     <table class="matrix">
-      <tr><th>Mechanism</th><th>When it earns its keep</th></tr>
-      <tr><td><code>CLAUDE.md</code> note</td><td>One-shot conventions ("always normalize <code>Q</code> before <code>solve_qp</code>"). No code needed; Claude reads <code>CLAUDE.md</code> every session.</td></tr>
-      <tr><td>Skill</td><td>Stateless, reusable inside this project, ships in the repo. The KKT-residual check from Exercise 3 is the canonical shape.</td></tr>
-      <tr><td>MCP</td><td>Persistent state worth keeping warm across calls; or it talks to something Claude can't run inline (a licensed solver, a remote cluster); or it needs to be available to many sessions across many projects.</td></tr>
+      <tr><th>Question</th><th>Answer</th></tr>
+      <tr><td>What does <code>CLAUDE.md</code> answer?</td><td><i>How does this project work.</i> Stack, file layout, conventions, hard rules.</td></tr>
+      <tr><td>What does <code>MEMORY.md</code> answer?</td><td><i>What have we learned.</i> Decisions, parameters, dead ends, open questions.</td></tr>
+      <tr><td>Growth pattern</td><td><code>CLAUDE.md</code> changes rarely. <code>MEMORY.md</code> grows as experiments accumulate.</td></tr>
+      <tr><td>The test</td><td>If knowing a fact depends on <i>having run experiments</i>, it belongs in <code>MEMORY.md</code>. Otherwise <code>CLAUDE.md</code>.</td></tr>
     </table>
-    <div class="callout" style="background: #8a1f1f; color: #fbfaf6; border-left-color: #4a0e0e; font-weight: 500;">The toy in this exercise is honestly <i>skill-shaped</i> — the MCP shell is what's being taught. The stretch (swap <code>cvxpy</code> for a warmed-up PETSc/TAO process) is where the persistent-state justification actually bites.</div>
     <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
-  <!-- Exercise 5 · walkthrough -->
+  <!-- Exercise 4 · walkthrough -->
   <section class="slide">
-    <h3>Exercise 5 <span class="badge">15 min</span></h3>
+    <h3>Exercise 4 <span class="badge">10 min</span></h3>
     <h1>Run the exercise</h1>
     <ol>
-      <li><code>cd exercises/05-mcp/</code> and <code>pip install -r requirements.txt</code>.</li>
-      <li>Open <code>toy_solver_mcp.py</code> — a ~60-line MCP server exposing <code>solve_qp(Q, c, A, b)</code> via <code>cvxpy</code>.</li>
-      <li>Register the server:
-        <pre>claude mcp add toy-solver --command python --args toy_solver_mcp.py</pre>
-        <p style="color: #8a1f1f; font-weight: 500; font-size: 16px; margin: 6px 0 0;">⚠ Verify before running live: recent <code>claude</code> versions removed the <code>--command</code>/<code>--args</code> flags in favor of <code>claude mcp add toy-solver -- python3 toy_solver_mcp.py</code>. Run <code>claude mcp add --help</code> to confirm the syntax on your install. On Homebrew macOS, only <code>python3</code> is on PATH (no <code>python</code>).</p>
+      <li><code>cd exercises-opt/04-memory</code> — a real project's <code>plans/</code> directory is already there (an ADMM filter method for topology optimization), alongside its <code>src/</code> and <code>tex/</code>.</li>
+      <li>Launch <code>claude</code> and paste:
+        <pre>read everything under plans/ and produce MEMORY.md with the
+sections: Decisions, Parameters, Dead Ends, Open Questions.
+Each entry should cite the plans/ file it came from.</pre>
       </li>
-      <li>Launch <code>claude</code> in this directory and paste:
-        <pre>Solve the QP in problem.json using the toy-solver MCP and report
-the structured result.</pre>
+      <li><b>Trim aggressively.</b> For each line ask: would a future-me on another session actually consult this? If the file is longer than the source plans combined, push back — that is copying, not synthesis.</li>
+      <li>With the trimmed file (and a CLAUDE.md) in place, paste:
+        <pre>given MEMORY.md and CLAUDE.md, what would be the most informative
+next experiment to run? Justify in two sentences.</pre>
+        A good answer cites a <i>specific</i> entry; a hand-wave is a teachable failure.
       </li>
-      <li>Edit <code>problem.json</code> (change <code>c</code>, or perturb a row of <code>A</code>) and re-prompt. Confirm Claude re-calls the MCP rather than recycling the prior answer.</li>
+      <li>Close with the two-minute ritual:
+        <pre>summarize what we did this session, append a dated entry to
+MEMORY.md, and overwrite STATUS.md with where we are now.</pre>
+      </li>
     </ol>
     <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
-  <!-- Exercise 5 · debrief -->
+  <!-- Exercise 4 · debrief -->
   <section class="slide">
-    <h3>Exercise 5 · debrief</h3>
-    <h1>What "MCP routing" looks like</h1>
-    <p>The artifact to inspect is not the optimum — it is the <i>call</i>. Read what Claude did against this checklist.</p>
+    <h3>Exercise 4 · debrief</h3>
+    <h1>What a good synthesis looks like</h1>
+    <p>The exercise tests <i>editorial</i> judgment more than computational behavior. Read the synthesized file and Claude's next-experiment answer against this checklist.</p>
     <table class="matrix">
-      <tr><th>Good routing</th><th>What to push back on</th></tr>
-      <tr><td>Calls <code>toy-solver:solve_qp</code> by name.</td><td>Solves the QP inline with <code>cvxpy</code> — bypasses the MCP entirely.</td></tr>
-      <tr><td>Arguments at the wire match <code>problem.json</code> verbatim — <code>Q</code>, <code>c</code>, <code>A</code>, <code>b</code> all in the right shape.</td><td>Reshaped <code>Q</code>, rounded entries, or symmetrized inputs in passing without telling you.</td></tr>
-      <tr><td>Reports the structured payload (status, optimum, primal, dual) verbatim alongside any prose.</td><td>Paraphrases as "optimal, value ≈ -3.2, looks fine" and drops the JSON.</td></tr>
-      <tr><td>Re-calls the MCP when <code>problem.json</code> changes.</td><td>Recycles the prior answer — treats the first call as a memo, not a tool.</td></tr>
-      <tr><td>Treats the MCP as the source of truth.</td><td>Cross-checks with an inline <code>cvxpy</code> solve, then second-guesses the MCP.</td></tr>
+      <tr><th>What a good synthesis does</th><th>What to push back on</th></tr>
+      <tr><td>Cites the source <code>plans/</code> file on every entry.</td><td>"See plans" or no citations at all.</td></tr>
+      <tr><td>Comes in well under the combined length of the source plans.</td><td>Longer than the inputs — re-typing, not synthesis.</td></tr>
+      <tr><td>Dead Ends preserve the <i>why</i> a path was abandoned.</td><td>Verdict only ("abandoned X"). The reason is what stops the re-attempt later.</td></tr>
+      <tr><td>Next-experiment answer names a specific entry and a one-session scope.</td><td>Generic "more research needed," or a multi-week project that ignores <code>MEMORY.md</code>.</td></tr>
+      <tr><td>Surfaces conflicts between two plans rather than smoothing them over.</td><td>Silent merge of entries that disagree — destroys the most valuable information.</td></tr>
     </table>
     <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
-  <!-- Exercise 5 · closing -->
+  <!-- Exercise 4 · closing -->
   <section class="slide">
-    <h3>Exercise 5 · closing</h3>
-    <h1>MCP = capability that survives the session</h1>
-    <p>The artifact this exercise produced is not the QP solver. It is the <i>registered tool name</i> — <code>toy-solver:solve_qp</code> — that any future session in this folder can invoke without setup, without re-explaining, without re-implementing.</p>
-    <div class="callout">The stretch is where the design compounds: swap <code>cvxpy</code> for PETSc/TAO with a warmed-up solver process and the MCP starts amortizing setup cost across every call. That is the regime where <i>"MCP, not skill"</i> stops being a teaching point and starts being the design that actually wins. The capstone (Exercise 6) is where multiple MCPs meet in a single workflow.</div>
+    <h3>Exercise 4 · closing</h3>
+    <h1>MEMORY.md as next-session inheritance</h1>
+    <p>Every session is downstream of a hundred forgotten ones — your own from last month, your colleagues', the one you'll resume on a different machine in three weeks. <code>MEMORY.md</code> is the file that decides what the next session knows. Without it, every resumption pays the same "what was I working on" tax.</p>
+    <div class="callout">The two-minute end-of-session ritual is the workshop's most lopsided ROI move: <code>append a dated entry to MEMORY.md, overwrite STATUS.md with where we are now</code>. Two minutes now; saves the first ten minutes of the next session, every time.</div>
     <div class="footer"><span>Optimization supplement · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 

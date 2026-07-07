@@ -1,6 +1,6 @@
 # Exercise 2 — Plan a small NLP (15 min)
 
-**Goal.** Use plan mode to lay out the structure of a small NLP project before any code is written.
+**Goal.** Use plan mode to lay out the structure of a small NLP project before any code is written. The deliverable is the **`plan.md`** itself — the lesson is plan mode as a *design step you control*, where the value is the modeling questions the act of planning forces you to answer before you spend compute.
 
 ## The problem
 
@@ -20,6 +20,21 @@ $$
 
 with $n = 50$ assets and cardinality $K = 8$. Data is in `nlp_seed.py`.
 
+## You are the scientist (read before you start)
+
+Planning a *new* model from scratch is not the same risk as fixing a known one. There is no
+textbook answer for Claude to recite — instead, a greenfield plan hides dozens of small
+**modeling decisions**, and Claude will quietly pick a default for each one: how to enforce
+the complementarity constraint numerically, which UNO solver to call, how to sweep $\tau$, what
+"optimality gap" even means for a nonconvex problem, how the covariance is conditioned. Any of
+these defaults can silently turn the problem you posed into a different, easier one.
+
+**Claude is a tool; you are the scientist.** Your job in this exercise is not to read the plan
+and accept it. It is to decide *which of those modeling decisions you must own*, and pin them in
+the prompt or during plan iteration — so that what lands in `plan.md` is your model, not a
+plausible substitute. The scope clause in the prompt below is one example of that structure;
+the critical-reading checklist names the rest.
+
 ## Steps
 
 1. `cd exercises/02-planning && claude`
@@ -34,19 +49,29 @@ with $n = 50$ assets and cardinality $K = 8$. Data is in `nlp_seed.py`.
    '-mu^\top w'), solve time, optimality gap, and selected assets 
    to a CSV. Plot the trade-off between risk ('w^\top \Sigma w') and
    return ('-\mu^\top w') for different values of '\tau'.
+
+   Keep the model exactly as formulated in nlp_seed.py: do not relax,
+   smooth, or reformulate the complementarity cardinality constraint, and
+   do not switch solver families. If you believe a reformulation is
+   necessary, flag it explicitly in the plan rather than adopting it
+   silently.
    ```
 
-4. Read the plan critically. Don't approve it yet. Look for:
-
-   - Does it specify how `Sigma` is loaded (and validated to be PSD)?
-   - Does it parameterize `tau` and `K`, or hardcode them?
-   - Does it allow different parameterizations of 'tau'
-   - Where will it write the CSV? Is the path configurable?
-   - Does it describe how to select UNO's solvers?
+4. **Read the plan critically. Don't approve it yet.** Work through the critical-reading checklist below.
 
 5. Save the plan: ask Claude to write it to `plan.md`. Discuss with your neighbor: 
    - What one assumption would you have made wrong without the plan?
    - Does the plan provide a reasonable strategy for the plot?
+
+## Critical-reading checklist
+
+| Look for | Why it matters |
+|----------|----------------|
+| Does it specify how `Sigma` is loaded (and validated to be PSD)? | A non-PSD covariance silently changes the problem. |
+| Does it parameterize `tau` and `K`, or hardcode them? | Sweeping `tau` is the exercise. |
+| Does it allow different parameterizations of `tau`? | The Pareto sweep depends on it. |
+| Where will it write the CSV? Is the path configurable? | Output you can't relocate is hard to reuse. |
+| Does it describe how to select UNO's solvers? | An unstated solver choice makes runs incomparable. |
 
 ## Discussion prompts
 

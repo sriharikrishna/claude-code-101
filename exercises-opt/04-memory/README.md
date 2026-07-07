@@ -1,6 +1,6 @@
 # Exercise 4 — Bootstrap MEMORY.md from notebook entries (10 min)
 
-**Goal.** Use Claude Code to turn loose lab notebook/plans entries into a structured `MEMORY.md`.
+**Goal.** Use Claude Code to turn loose lab notebook/plans entries into a structured `MEMORY.md`. The synthesis is the pretext; **the file is the artifact** — how the next session inherits what this one learned.
 
 **Background** These are actual plans from a project that is briefly described next (skip to Section 5 to start the exercise). The project tried to implement an ADMM filter method for topology optimization.
 
@@ -91,7 +91,7 @@ python3 FilterADMM.py --nelx 60 --nely 20                 # larger mesh
    Each entry should cite the plans/ file it came from.
    ```
 
-3. Review the result. It will be too long. Edit ruthlessly.
+3. **Review and trim.** It will be too long. For each line, ask: *would a future-me on a different session actually consult this?* Cut everything that's just "what happened that day." Edit ruthlessly — the trimmed file is what your next session reads on load.
 
 4. Create a `CLAUDE.md` file.
 
@@ -104,13 +104,27 @@ python3 FilterADMM.py --nelx 60 --nely 20                 # larger mesh
 
    The answer should reference at least one specific entry.
 
-6. End the session by asking:
+6. End the session with the two-minute ritual:
 
    ```
-   summarize what we did in this session and append it to MEMORY.md
-   under Decisions or Open Questions, whichever fits (noting that
-   MEMORY.md was edited and CLAUDE.md created).
+   summarize what we did in this session, append it as a dated entry to
+   MEMORY.md (under Decisions or Open Questions, whichever fits, noting
+   that MEMORY.md was edited and CLAUDE.md created), and overwrite
+   STATUS.md with where we are now.
    ```
+
+   The MEMORY.md append should name a concrete decision or question, not the activity. STATUS.md should be tight enough that the next session can pick up from it without reading anything else first.
+
+## Critical-reading checklist
+
+| Look for | Why it matters |
+|----------|----------------|
+| Did every entry cite its source `plans/` file? | An entry you can't trace back is one you can't revise. |
+| Did Claude actually trim, or is `MEMORY.md` longer than the source plans? | Synthesis without trimming is just retyping. |
+| Did Dead Ends keep the *reason* a path was abandoned, not just the verdict? | A verdict alone doesn't stop a re-attempt. |
+| Did the next-experiment answer cite a specific entry? | If it doesn't, it could've been written without the file. |
+| Did the end-of-session append name a decision, not the activity? | "We discussed MEMORY.md" decays to nothing. |
+| Did Claude surface conflicts between plan files, or smooth them over? | A hidden conflict destroys the most important information. |
 
 ## Discussion prompts
 

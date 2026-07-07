@@ -295,7 +295,7 @@
     <div class="kicker">Workshop · two hours</div>
     <h1>Files, not chats</h1>
     <p class="sub" style="font-size: 28px; color: var(--ink); margin-top: 8px; margin-bottom: 18px;">Claude Code as a co-scientist <span style="color: var(--muted); font-size: 22px;">— for mathematicians</span></p>
-    <p class="sub">A hands-on workshop for researchers in computational mathematics — numerical PDEs, optimization, etc. The four-file architecture (CLAUDE.md, plans/, MEMORY.md, STATUS.md), skills, MCP servers, version control, testing, and literature workflows — with runnable exercises.</p>
+    <p class="sub">A hands-on workshop for researchers in computational mathematics — numerical PDEs, optimization, etc. The four-file architecture (CLAUDE.md, plans/, MEMORY.md, STATUS.md), skills, version control, testing, and literature workflows — with runnable exercises.</p>
     <div class="footer">
       <span>Workshop · v1</span>
       <div class="progress"><div></div></div>
@@ -337,7 +337,6 @@
     <ol>
       <li><b>The four-file architecture</b> — <code>CLAUDE.md</code> (conventions), <code>plans/</code> (forward-looking), <code>MEMORY.md</code> (durable knowledge), <code>STATUS.md</code> (current state).</li>
       <li><b>Skills</b> — packaging recurring domain logic (KKT checks, performance profiles) as reusable artifacts.</li>
-      <li><b>MCP servers</b> — connecting external systems (databases, GitHub, your own solver).</li>
       <li><b>Sustainable habits</b> — version control, recognizing whack-a-mole loops, ending sessions cleanly.</li>
       <li><b>A capstone</b> — an inverse Poisson problem with PETSc/TAO that uses everything.</li>
     </ol>
@@ -354,7 +353,7 @@
         <div style="font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.18em; font-size: 13px; color: var(--accent); margin-bottom: 4px;">Stage 1</div>
         <h2 style="font-size: 34px; margin-bottom: 10px;">Exercises</h2>
         <ul>
-          <li>Small, self-contained examples that show how individual Claude features work — CLAUDE.md, plan mode, skills, MEMORY.md, MCP.</li>
+          <li>Small, self-contained examples that show how individual Claude features work — CLAUDE.md, plan mode, skills, MEMORY.md </li>
           <li>These are <i>not</i> "you must only use it this way" prescriptions. They're starting points.</li>
           <li>During each exercise, keep asking yourself: <i>how could a tool like this help me in my own research?</i> The answer will look different for everyone.</li>
         </ul>
@@ -376,61 +375,13 @@
   <section class="slide">
     <h3>Concept</h3>
     <h1>What is Claude Code?</h1>
-    <p>An <b>agentic coding assistant</b> that runs in your terminal. It reads and writes files in your project, runs commands you approve, and works through multi-step tasks the way you would.</p>
+    <p>An <b>agentic coding assistant</b> in your terminal: it reads and writes files, runs commands you approve, and works through multi-step tasks the way you would.</p>
     <ul>
-      <li>It is <i>not</i> autocomplete. It plans, reads context, edits files, runs tests.</li>
-      <li>You stay in control: every file edit and shell command can be reviewed.</li>
-      <li>It runs locally against your code; nothing leaves your machine without your action.</li>
+      <li>Not autocomplete — it plans, reads context, edits files, runs tests.</li>
+      <li>You stay in control: every edit and command is reviewable.</li>
+      <li>Runs locally; nothing leaves your machine without your action.</li>
     </ul>
-    <div class="callout">The framing we'll use throughout: <b>Claude Code as a co-scientist</b>. Think of it as a junior collaborator who has read the manual for every library you use, but who needs you to specify the problem precisely. The four files we'll cover — CLAUDE.md, plans/, MEMORY.md, STATUS.md — are how you brief them.</div>
-    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- 5. Setup -->
-  <section class="slide">
-    <h3>Setup</h3>
-    <h1>Five-minute install</h1>
-    <pre><code># 1. Install (requires Node.js 18+)
-npm install -g @anthropic-ai/claude-code
-
-# 2. Authenticate (opens a browser)
-claude
-
-# 3. Open a project
-cd ~/research/my-solver
-claude</code></pre>
-    <p class="small">Alternatives: Claude Code is also available inside VS Code, JetBrains IDEs, and through Cursor. Today we use the CLI because it makes the file/skill/MCP plumbing visible.</p>
-    <div class="callout">Workshop folder: clone <code>exercises/</code> from this repository. Each exercise has its own folder; <code>cd</code> into it before running <code>claude</code>.</div>
-    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- 6. First contact -->
-  <section class="slide">
-    <h3>First contact</h3>
-    <h1>Your first session</h1>
-    <p>Open a folder containing one short script and ask:</p>
-    <pre><code>&gt; explain rosenbrock.py and suggest a better starting point for the optimizer</code></pre>
-    <p>Claude Code will read the file, summarize the structure, and propose changes. It will <i>show you a diff</i> before writing.</p>
-    <div class="two-col">
-      <div class="col">
-        <h4>Useful first prompts</h4>
-        <ul>
-          <li><code>/init</code> — generate a CLAUDE.md from the current codebase.</li>
-          <li><code>explain the structure of this project</code></li>
-          <li><code>find every place we call scipy.optimize</code></li>
-          <li><code>add a unit test for the projected gradient step</code></li>
-        </ul>
-      </div>
-      <div class="col">
-        <h4>Useful keys</h4>
-        <ul>
-          <li><span class="kbd">Esc</span> interrupt the current run</li>
-          <li><span class="kbd">Shift</span>+<span class="kbd">Tab</span> twice — plan mode</li>
-          <li><code>/clear</code> reset conversation, keep context files</li>
-          <li><code>/help</code> the full slash-command list</li>
-        </ul>
-      </div>
-    </div>
+    <div class="callout">Our framing throughout: <b>Claude Code as a co-scientist</b> — a collaborator who has read the manual for every library you use but needs you to specify the problem precisely. The four files (CLAUDE.md, plans/, MEMORY.md, STATUS.md) are how you brief it.</div>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -442,20 +393,20 @@ claude</code></pre>
       <div class="col">
         <h4>Routine work it absorbs</h4>
         <ul>
-          <li>Writing plotting helpers (semilog convergence, performance profiles).</li>
+          <li>Plotting helpers (semilog convergence, performance profiles).</li>
           <li>Parsing solver logs into a tidy DataFrame.</li>
-          <li>Translating between modeling languages: Pyomo ↔ AMPL ↔ JuMP.</li>
-          <li>Writing CUTEst-style test harnesses.</li>
-          <li>LaTeX-ing your derivations into paper-ready form.</li>
+          <li>Translating between Pyomo ↔ AMPL ↔ JuMP.</li>
+          <li>CUTEst-style test harnesses.</li>
+          <li>LaTeX-ing derivations to paper-ready form.</li>
         </ul>
       </div>
       <div class="col">
         <h4>Research work it accelerates</h4>
         <ul>
-          <li>"What line-search rule does Wächter–Biegler 2006 use here?" — pulls the answer from the codebase.</li>
-          <li>Rewriting a primal-dual update with a different scaling.</li>
-          <li>Generating large parameter sweeps over CUTEst with consistent logging.</li>
-          <li>Glue between PETSc, your Python driver, and your benchmark database.</li>
+          <li>"What line-search rule does Wächter–Biegler 2006 use?" — answered from the codebase.</li>
+          <li>Rescaling a primal-dual update.</li>
+          <li>Large CUTEst sweeps with consistent logging.</li>
+          <li>Glue between PETSc, your driver, and your benchmark DB.</li>
         </ul>
       </div>
     </div>
@@ -466,14 +417,14 @@ claude</code></pre>
   <section class="slide">
     <h3>Session basics</h3>
     <h1>How a session works</h1>
-    <p class="lede">Everything Claude reads and writes during a session lives in one finite buffer called the <i>context window</i>.</p>
+    <p class="lede">Everything Claude reads and writes in a session lives in one finite buffer — the <i>context window</i>.</p>
     <ul>
-      <li>Every prompt you type, every file Claude reads, every tool output — all go into the same window.</li>
-      <li>The context window is large but bounded (around 200K tokens, roughly 150K words).</li>
-      <li style="color: #c0392b;">When you approach the limit, Claude Code <b>auto-compacts</b> — older messages are summarized to make room.</li>
-      <li>After auto-compact, specific details from earlier turns can fade. Anything you want to keep should be on disk, not just in the conversation.</li>
+      <li>Every prompt, file read, and tool output goes into the same window.</li>
+      <li>Large but bounded — around 200K tokens (~150K words).</li>
+      <li style="color: #c0392b;">Near the limit, Claude Code <b>auto-compacts</b>: older messages are summarized to make room.</li>
+      <li>Compaction is lossy — details from early turns can fade. Keep anything that matters on disk.</li>
     </ul>
-    <div class="callout">Implication: long sessions are fine, but treat the conversation as ephemeral. Persistent facts go in CLAUDE.md, MEMORY.md, or files in the repo.</div>
+    <div class="callout">Long sessions are fine, but treat the conversation as ephemeral. Persistent facts go in CLAUDE.md, MEMORY.md, or repo files.</div>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -486,7 +437,6 @@ claude</code></pre>
       <tr><td>Files in your project (code, MEMORY.md)</td><td>Yes</td><td>Yes — they're on disk</td></tr>
       <tr><td>CLAUDE.md</td><td>Yes — auto-loaded each session</td><td>Yes — kept in context</td></tr>
       <tr><td>Skills</td><td>Yes — loaded on demand by description match</td><td>Re-loaded as needed</td></tr>
-      <tr><td>Registered MCP servers</td><td>Yes — config persists</td><td>Connection persists</td></tr>
       <tr><td>The conversation itself</td><td>Only with <code>--resume</code></td><td>Compressed to a summary</td></tr>
       <tr><td>"Mental notes" Claude has in-conversation</td><td>No — they vanish</td><td>Often lost</td></tr>
     </table>
@@ -541,13 +491,12 @@ claude --resume
   <section class="slide">
     <h3>CLAUDE.md</h3>
     <h1>What is CLAUDE.md?</h1>
-    <p>A plain markdown file in your project root. The first thing Claude Code reads on every session.</p>
+    <p>A plain markdown file in your project root — the first thing Claude Code reads every session, loaded automatically.</p>
     <ul>
-      <li>It is loaded automatically — no command needed.</li>
-      <li>You can also keep a personal one at <code>~/.claude/CLAUDE.md</code> for cross-project preferences.</li>
+      <li>Keep a personal one at <code>~/.claude/CLAUDE.md</code> for cross-project preferences.</li>
       <li>It can reference other files: <code>see <i>memory/solvers.md</i> for our notation</code>.</li>
     </ul>
-    <div class="callout">Mental model: it's the README that's specifically for the AI. It doesn't replace your README; it sits beside it.</div>
+    <div class="callout">Mental model: the README that's specifically for the AI — it sits beside your README, doesn't replace it.</div>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -555,14 +504,13 @@ claude --resume
   <section class="slide">
     <h3>CLAUDE.md</h3>
     <h1>Why mathematicians need one</h1>
-    <p>Without a CLAUDE.md, every session starts from zero. With one, Claude knows your conventions before it writes a line.</p>
+    <p>Without one, every session starts from zero. With one, Claude knows your conventions before it writes a line — notation, tooling, tolerances, tests, and hard "don'ts":</p>
     <ul>
-      <li><b>Notation.</b> "Use <code>x</code> for primal, <code>λ</code> for equality multipliers, <code>μ</code> for inequality multipliers."</li>
-      <li><b>Tooling.</b> "Pyomo for modeling, IPOPT for NLP, BARON for global MINLP, petsc4py for PDE-constrained problems."</li>
-      <li><b>Tolerances.</b> "All tolerances default to 1e-8 unless explicitly noted."</li>
-      <li><b>Tests.</b> "Run with <code>pytest -q tests/</code>. CUTEst problems live in <code>cutest/</code>."</li>
-      <li><b>Don'ts.</b> "Do not use scipy.optimize.minimize for constrained problems — it silently ignores active sets near the boundary in our setup."</li>
+      <li><b>Notation.</b> <code>x</code> primal, <code>λ</code> equality mult., <code>μ</code> inequality mult.</li>
+      <li><b>Tooling &amp; tolerances.</b> Pyomo / IPOPT / BARON / petsc4py; tolerances default to 1e-8.</li>
+      <li><b>Don'ts.</b> "No <code>scipy.optimize.minimize</code> for constrained problems — it ignores active sets near the boundary in our setup."</li>
     </ul>
+    <p class="small">Each exercise supplement opens with the domain-specific version of this list.</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -616,13 +564,12 @@ Develop a primal-dual IPM with inertia correction for nonconvex NLPs.
   <section class="slide">
     <h3>Planning</h3>
     <h1>Why plan first?</h1>
-    <p>Research code has tightly coupled steps: problem formulation, discretization or transcription, numerical scheme, parameter choices, verification. Without a plan, the assistant fixes one and breaks another.</p>
+    <p>Research code has tightly coupled steps — formulation, discretization, scheme, parameters, verification. Without a plan, the assistant fixes one and breaks another.</p>
     <ul>
-      <li>Plan mode gives you a written specification before any code is written.</li>
-      <li>The plan itself is a deliverable: paste it into your notes.</li>
+      <li>A written specification before any code — the plan is itself a deliverable.</li>
       <li>You catch wrong assumptions on a screen, not in a debugger three hours later.</li>
     </ul>
-    <div class="callout">This is the same discipline as writing pseudocode before implementing a new method. Same payoff.</div>
+    <div class="callout">Same discipline as writing pseudocode before implementing a new method — same payoff.</div>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -631,11 +578,11 @@ Develop a primal-dual IPM with inertia correction for nonconvex NLPs.
     <h3>Planning</h3>
     <h1>Plan mode in Claude Code</h1>
     <ul>
-      <li>Press <span class="kbd">Shift</span>+<span class="kbd">Tab</span> twice in the prompt. The footer turns into <i>plan mode</i>.</li>
-      <li>State the task. Claude reads context, asks clarifying questions, and proposes a plan.</li>
-      <li>Approve the plan to enter execute mode, or revise.</li>
+      <li>Press <span class="kbd">Shift</span>+<span class="kbd">Tab</span> twice — the footer turns into <i>plan mode</i>.</li>
+      <li>State the task; Claude reads context, asks clarifying questions, proposes a plan.</li>
+      <li>Approve to execute, or revise.</li>
     </ul>
-    <p class="small">You can also start in plan mode by typing <code>plan: &lt;task&gt;</code> at the prompt.</p>
+    <p class="small">Or start directly by typing <code>plan: &lt;task&gt;</code> at the prompt.</p>
     <pre><code>plan: implement a filter line search for our IPM driver,
        then add a CUTEst-style test for problem HS071 with
        tolerances matching memory/decisions.md.</code></pre>
@@ -736,37 +683,11 @@ Open questions:
     <h3>Skills</h3>
     <h1>What are skills?</h1>
     <ul>
-      <li>A <b>skill</b> is a folder named after the capability, with a <code>SKILL.md</code> at its root.</li>
-      <li><code>SKILL.md</code> has YAML front-matter (<code>name</code>, <code>description</code>) and a body with instructions, code snippets, and references.</li>
-      <li>The <code>description</code> is what triggers the skill: when the user's task matches it, Claude loads the body.</li>
-      <li>Skills live in <code>.claude/skills/</code> in your project, or <code>~/.claude/skills/</code> globally.</li>
+      <li>A <b>skill</b> is a folder named after the capability, with a <code>SKILL.md</code> at its root — YAML front-matter (<code>name</code>, <code>description</code>) plus instructions, snippets, references.</li>
+      <li>The <code>description</code> triggers it: when the task matches, Claude loads the body.</li>
+      <li>Lives in <code>.claude/skills/</code> (project) or <code>~/.claude/skills/</code> (global).</li>
     </ul>
-    <p class="small">Skills are the way to package "the thing my lab always does" — once — and reuse it across projects, students, and papers.</p>
-    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- 20. Skill examples -->
-  <section class="slide">
-    <h3>Skills</h3>
-    <h1>Skills worth building for optimization</h1>
-    <div class="two-col">
-      <div class="col">
-        <h4>Verification</h4>
-        <ul>
-          <li><b>kkt-checker</b> — given (x*, y*, z*), verify stationarity, primal/dual feasibility, complementarity, to a tolerance.</li>
-          <li><b>strong-stationarity-checker</b> — for MPCC, verify B-, M-, S-stationarity.</li>
-          <li><b>convergence-rate-fitter</b> — fit a power law to log‖∇f‖ over iterations.</li>
-        </ul>
-      </div>
-      <div class="col">
-        <h4>Reporting</h4>
-        <ul>
-          <li><b>perf-profile</b> — Dolan–Moré performance profiles from solver log directories.</li>
-          <li><b>cutest-runner</b> — wrap a solver, run on a CUTEst subset, write Markdown table.</li>
-          <li><b>tex-equation-extractor</b> — pull display math from a paper PDF, return as a numbered list.</li>
-        </ul>
-      </div>
-    </div>
+    <p class="small">Skills package "the thing my lab always does" — once — and reuse it across projects, students, and papers.</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -845,12 +766,10 @@ Returns max residuals for stationarity, feasibility, complementarity.</code></pr
     <table class="matrix">
       <tr><th></th><th>CLAUDE.md</th><th>MEMORY.md</th></tr>
       <tr><td>Lifespan</td><td>Stable across the project</td><td>Evolves with the research</td></tr>
-      <tr><td>Audience</td><td>Every session, every contributor</td><td>Future you, future student</td></tr>
       <tr><td>Content</td><td>Conventions, commands, do/don't</td><td>Decisions, parameter values, dead-ends</td></tr>
       <tr><td>Edited by</td><td>You, deliberately</td><td>You and Claude — at the end of each session</td></tr>
-      <tr><td>Size</td><td>One screen if possible</td><td>Grows; index it with section headers</td></tr>
     </table>
-    <p class="small">Convention used here: a single MEMORY.md works for small projects; for larger ones, a <code>memory/</code> directory with topical files (<code>solvers.md</code>, <code>experiments.md</code>, <code>dead-ends.md</code>) and an <code>INDEX.md</code> at the top.</p>
+    <p class="small">Small projects: one MEMORY.md. Larger ones: a <code>memory/</code> directory (<code>solvers.md</code>, <code>experiments.md</code>, <code>dead-ends.md</code>) with an <code>INDEX.md</code>. (The exercise supplement revisits this distinction.)</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -859,13 +778,13 @@ Returns max residuals for stationarity, feasibility, complementarity.</code></pr
     <h3>MEMORY.md</h3>
     <h1>What to record</h1>
     <ul>
-      <li><b>Decisions.</b> "We chose IPOPT over SNOPT because of license — 2026-03-12, see issue #41."</li>
-      <li><b>Parameter folklore.</b> "<code>mu_init=1e-2</code> is fastest on our cohort; <code>1e-4</code> diverges on the catalysis problem."</li>
-      <li><b>Dead ends.</b> "Tried Newton with tikhonov regularization on the inverse Poisson; converges but multipliers are noise. Don't repeat."</li>
-      <li><b>Open questions.</b> "Is the inertia correction's threshold problem-dependent? Re-check with HS071 and HS099."</li>
-      <li><b>Run logs.</b> "Best run so far: <code>runs/2026-04-22T1430</code>. ‖∇f‖ at termination 3.7e-9."</li>
+      <li><b>Decisions.</b> "IPOPT over SNOPT for license reasons — 2026-03-12, issue #41."</li>
+      <li><b>Parameter folklore.</b> "<code>mu_init=1e-2</code> fastest on our cohort; <code>1e-4</code> diverges on the catalysis problem."</li>
+      <li><b>Dead ends.</b> "Newton + Tikhonov on inverse Poisson converges but multipliers are noise. Don't repeat."</li>
+      <li><b>Open questions.</b> "Is the inertia-correction threshold problem-dependent? Re-check HS071, HS099."</li>
+      <li><b>Run logs.</b> "Best so far: <code>runs/2026-04-22T1430</code>, ‖∇f‖ = 3.7e-9."</li>
     </ul>
-    <div class="callout">Ritual: end every session with <code>summarize what we did and append to MEMORY.md</code>. Two minutes. Pays back in weeks.</div>
+    <div class="callout">Ritual: end every session with <code>summarize what we did and append to MEMORY.md</code>. Two minutes; pays back in weeks.</div>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -880,8 +799,7 @@ Returns max residuals for stationarity, feasibility, complementarity.</code></pr
   <section class="slide">
     <h3>MEMORY.md</h3>
     <h1>Handoff: STATUS.md, not MEMORY.md</h1>
-    <p>MEMORY.md is for durable knowledge — decisions, parameters, dead ends. It grows. <b>Don't put session-to-session handoff in it.</b> "I'm in the middle of debugging X, next step is Y" is true today, noise next week.</p>
-    <p>Use a small, separate, <i>overwritten</i> file:</p>
+    <p>MEMORY.md holds durable knowledge and grows. <b>Don't put session handoff in it</b> — "mid-debug on X, next step Y" is true today, noise next week. Use a small, separate, <i>overwritten</i> file:</p>
     <pre><code># STATUS — 2026-05-07 17:42
 
 ## What I'm working on
@@ -918,12 +836,12 @@ Then re-run pytest tests/test_linesearch.py -k HS071.</code></pre>
   <section class="slide">
     <h3>MEMORY.md</h3>
     <h1>Literature: the fifth artifact</h1>
-    <p class="lede" style="font-size: 19px;">For computational mathematicians, literature reading is a daily activity — and the highest-leverage place where Claude as a <i>co-scientist</i> differs from Claude as a <i>programmer</i>. Treat it as first class.</p>
+    <p class="lede" style="font-size: 19px;">Literature reading is daily work for computational mathematicians — and the highest-leverage place Claude as a <i>co-scientist</i> beats Claude as a <i>programmer</i>. Treat it as first class.</p>
     <table class="matrix">
       <tr><th></th><th>Claude does well</th><th>Claude does badly</th></tr>
       <tr><td>PDFs</td><td>Extract text, equations, tables (built-in <code>pdf</code> skill)</td><td>Decide what a result <i>really means</i> — that's still you</td></tr>
       <tr><td>Notation</td><td>Translate between Nocedal–Wright / Conn–Gould–Toint / Boyd–Vandenberghe</td><td>Catch subtle distinctions (B- vs. M- vs. S-stationarity) without your verification</td></tr>
-      <tr><td>Citations</td><td>Resolve fragments via <code>arxiv</code> / <code>semantic-scholar</code> MCP</td><td>Emit citations from memory — these are often <b>plausible-looking and wrong</b></td></tr>
+      <tr><td>Citations</td><td>Resolve fragments via an <code>arxiv</code> / <code>semantic-scholar</code> lookup</td><td>Emit citations from memory — these are often <b>plausible-looking and wrong</b></td></tr>
     </table>
     <p style="font-size: 19px;">Add <code>literature/</code> alongside <code>plans/</code>: one file per paper, named by BibTeX key. MEMORY.md decisions cite both.</p>
     <pre style="font-size: 17px;"><code>project/
@@ -935,7 +853,7 @@ Then re-run pytest tests/test_linesearch.py -k HS071.</code></pre>
     ├── wachter-biegler-2006.md
     ├── nocedal-wright-12.md
     └── INDEX.md       # contents page once it grows past ~10</code></pre>
-    <div class="callout">CLAUDE.md hard rule: <code>never emit a citation from memory. Resolve via the literature MCP, or quote the local PDF, or mark <code>[citation needed]</code></code>. One line; the single biggest defense against hallucinated bibliographies.</div>
+    <div class="callout">CLAUDE.md hard rule: <code>never emit a citation from memory. Resolve via a literature search, or quote the local PDF, or mark <code>[citation needed]</code></code>. One line; the single biggest defense against hallucinated bibliographies.</div>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
@@ -953,114 +871,17 @@ Then re-run pytest tests/test_linesearch.py -k HS071.</code></pre>
     <pre><code>     Your lab MediaWiki  →  wiki-rag (Milvus + LangGraph)
                               │  exposes /v1/chat/completions
                               ▼
-                            Custom MCP wrapper
+                            Custom tool wrapper
                               │  tool: query_lab_wiki(question)
                               ▼
                           Claude Code session</code></pre>
-    <p class="small">Pattern: any RAG that speaks the OpenAI API can become an MCP tool in ten lines. Now Claude has searchable access to your group's institutional knowledge — and so does every collaborator who runs the workshop's setup.</p>
-    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- 28. SECTION: MCP -->
-  <section class="slide section-divider">
-    <div class="kicker">Part 5 · The plumbing</div>
-    <h1>MCP servers</h1>
-    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">The Model Context Protocol lets Claude Code call out to external tools — databases, GitHub, file systems, your own solver. Add capabilities without changing the assistant.</p>
-    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- 29. What is MCP -->
-  <section class="slide">
-    <h3>MCP</h3>
-    <h1>What is MCP?</h1>
-    <ul>
-      <li><b>Model Context Protocol</b> — an open standard for giving an LLM access to external tools and data via small servers.</li>
-      <li>An MCP server exposes a list of tools (functions) and resources (read-only data). Claude Code calls them like any other tool.</li>
-      <li>Servers can be local (a Python process you wrote) or remote (a hosted service).</li>
-      <li>Anyone can write a server — there are official SDKs in Python and TypeScript.</li>
-    </ul>
-    <div class="callout">Key point: MCP is the way to <b>add capabilities</b> Claude doesn't have natively, in a way that's portable across AI clients (Claude Desktop, Cursor, VS Code, etc.).</div>
-    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- 30. Useful MCPs -->
-  <section class="slide">
-    <h3>MCP</h3>
-    <h1>MCPs worth your time, by problem</h1>
-    <table class="matrix">
-      <tr>
-        <th>Problem</th><th>Useful MCP</th><th>Why</th>
-      </tr>
-      <tr>
-        <td>Many benchmark runs to compare</td>
-        <td>SQLite or DuckDB MCP</td>
-        <td>Append rows; query later by problem class, solver, parameter.</td>
-      </tr>
-      <tr>
-        <td>Collaborating on solver code</td>
-        <td>GitHub MCP</td>
-        <td>Browse PRs, file issues, link commits to MEMORY.md entries.</td>
-      </tr>
-      <tr>
-        <td>Wrapping your in-house PETSc/TAO solver</td>
-        <td>Custom Python MCP</td>
-        <td>Expose <code>solve(problem, options)</code> as a tool; reusable across sessions.</td>
-      </tr>
-      <tr>
-        <td>Literature work</td>
-        <td>arxiv MCP</td>
-        <td>Fetch abstracts, BibTeX, find related work without leaving the terminal.</td>
-      </tr>
-      <tr>
-        <td>Output management on a cluster</td>
-        <td>Filesystem MCP scoped to <code>$SCRATCH</code></td>
-        <td>Tidy run directories, build summary tables.</td>
-      </tr>
-    </table>
-    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- 31. Decision matrix -->
-  <section class="slide">
-    <h3>MCP</h3>
-    <h1>When <i>not</i> to reach for an MCP</h1>
-    <ul>
-      <li>The capability already exists as a <b>skill</b>. Skills are simpler — prefer them when no external state is involved.</li>
-      <li>The thing you want is just a CLI. Claude Code can run shell commands; you don't need an MCP wrapper.</li>
-      <li>You're prototyping. Write the script first; promote to MCP once it stabilizes and you want it across sessions.</li>
-    </ul>
-    <div class="callout">Rule of thumb: skill = "how to do this task"; MCP = "an external system Claude needs to talk to". KKT-checking is a skill. Querying a Postgres benchmark database is an MCP.</div>
-    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- 32. Connecting an MCP -->
-  <section class="slide">
-    <h3>MCP</h3>
-    <h1>Connecting an MCP</h1>
-    <pre><code># Add a SQLite MCP for benchmark logging
-claude mcp add sqlite \
-  --command "uvx" \
-  --args "mcp-server-sqlite" "--db-path" "./bench.db"
-
-# List what's connected
-claude mcp list
-
-# Remove it
-claude mcp remove sqlite</code></pre>
-    <p class="small">Configuration is stored in <code>~/.claude.json</code> (user) or <code>.mcp.json</code> (project, checked into git so collaborators get it for free).</p>
-    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- Exercise 5 — pointer to supplemental deck -->
-  <section class="slide section-divider">
-    <h1>Exercise 5</h1>
-    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Please refer to your supplemental slide deck.</p>
+    <p class="small">Pattern: any RAG that speaks the OpenAI API can become a Claude Code tool in ten lines. Now Claude has searchable access to your group's institutional knowledge — and so does every collaborator who runs the workshop's setup.</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
   <!-- NEW SECTION: Power features -->
   <section class="slide section-divider">
-    <div class="kicker">Part 6 · Power features</div>
+    <div class="kicker">Part 5 · Power features</div>
     <h1>Beyond the basics</h1>
     <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Four mechanisms that change what's possible: checkpoints for reversible exploration, subagents for context-isolated work, hooks for deterministic enforcement, and non-interactive mode for fan-out at scale.</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
@@ -1078,7 +899,7 @@ claude mcp remove sqlite</code></pre>
       <li><b>Persists across sessions</b> — you can close the terminal and rewind tomorrow.</li>
     </ul>
     <p>Two reverting tools at different scales: <b>git</b> for committed history, <b>/rewind</b> for in-session backtracks. Use them together.</p>
-    <div class="callout">Practical pattern: tell Claude to try something risky. If the diff isn't what you wanted, rewind and re-ask with the lesson learned. The cost of a wrong direction drops to almost zero.</div>
+    <div class="callout">Practical pattern: have Claude try something risky; if the diff isn't right, rewind and re-ask with the lesson learned. The cost of a wrong direction drops to near zero.</div>
     <p class="small">Caveat: <code>/rewind</code> tracks changes <i>made by Claude</i>. External edits, build artifacts, and database state are out of scope. Don't treat it as a replacement for git.</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
@@ -1097,8 +918,8 @@ claude mcp remove sqlite</code></pre>
     </table>
     <p>Mathematician examples:</p>
     <ul>
-      <li><b>Subagent.</b> A <code>solver-archaeologist</code> with <code>tools: Read, Grep, Glob</code> and <code>model: opus</code> that reads 200 files of inherited solver code and writes a one-page summary to <code>literature/inherited-code-notes.md</code>. Your main session never sees the 200 files.</li>
-      <li><b>Hook.</b> Run <code>pytest -q</code> after every file edit. Promote this from a CLAUDE.md rule (advisory) to a hook (deterministic). The rule fires whether Claude remembers or not.</li>
+      <li><b>Subagent.</b> A <code>solver-archaeologist</code> (<code>tools: Read, Grep, Glob</code>) that reads 200 files of inherited solver code and writes a one-page summary — your main session never sees the 200 files.</li>
+      <li><b>Hook.</b> Promote "run <code>pytest -q</code> after every edit" from a CLAUDE.md rule (advisory) to a hook (deterministic) — it fires whether Claude remembers or not.</li>
     </ul>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
@@ -1123,13 +944,13 @@ cat error.log | claude -p "extract the failing test names as a list"</code></pre
       <li><b><code>--output-format json</code></b> for parseable results; <code>stream-json</code> for real-time consumption.</li>
       <li><b><code>--permission-mode auto</code></b> lets a classifier handle approvals; aborts if it repeatedly blocks (no human to fall back to).</li>
     </ul>
-    <div class="callout">For optimization research this is the unlock: a parameter sweep that used to take 20 manual steps becomes a shell loop. Combined with the <code>kkt-checker</code> skill and a SQLite MCP for logging, you can run a 1300-problem CUTEst study overnight with consistent output.</div>
+    <div class="callout">For optimization research this is the unlock: a parameter sweep that used to take 20 manual steps becomes a shell loop. Combined with the <code>kkt-checker</code> skill, you can run a 1300-problem CUTEst study overnight with consistent output.</div>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
   <!-- SECTION: Working sustainably -->
   <section class="slide section-divider">
-    <div class="kicker">Part 7 · Habits</div>
+    <div class="kicker">Part 6 · Habits</div>
     <h1>Working sustainably</h1>
     <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">Version control, reverting, and recognizing when you're whack-a-mole-ing your own code. The unglamorous habits that make the rest of the workshop pay off.</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
@@ -1187,8 +1008,7 @@ cd ../alt-approach && claude</code></pre>
   <section class="slide">
     <h3>Working sustainably</h3>
     <h1>Verification first — tests are how Claude checks itself</h1>
-    <p class="lede"><b>The single highest-leverage thing you can do is give Claude a way to verify its own work.</b> Without a verification path, you become the only feedback loop. Tests turn that around: they let Claude run, see, and fix.</p>
-    <p>For a mathematician, tests do double duty.</p>
+    <p class="lede"><b>The highest-leverage thing you can do is give Claude a way to verify its own work.</b> Without it, you are the only feedback loop; tests let Claude run, see, and fix. For a mathematician, they do double duty:</p>
     <table class="matrix">
       <tr><th></th><th>As a programmer</th><th>As a co-scientist</th></tr>
       <tr><td>What it checks</td><td>Code does what it's supposed to</td><td>Results haven't degraded</td></tr>
@@ -1206,10 +1026,10 @@ cd ../alt-approach && claude</code></pre>
     <h3>Working sustainably</h3>
     <h1>Test patterns with Claude in the loop</h1>
     <ul>
-      <li><b>Test-first prompting.</b> "Write the test for X first, run it, confirm it fails. Then implement X and run the test again." Forces specification before code.</li>
-      <li><b>Hard rule in CLAUDE.md.</b> "Run <code>pytest -q</code> after every code edit; surface failures before continuing." One line, removes the most common failure mode (claim of success without verification).</li>
-      <li><b>Test the dead end, not just the success.</b> When Tikhonov failed (see MEMORY.md), add a test that asserts the failure mode — so a well-meaning future fix can't silently re-enable the bug.</li>
-      <li><b>Cite tests in commits and decisions.</b> <code>git commit -m "Step 3 of plans/...; tests/test_petsc_smoke.py passes"</code>. <code>MEMORY.md</code> decisions reference the test that catches their regression.</li>
+      <li><b>Test-first prompting.</b> "Write the test for X first, confirm it fails, then implement X." Forces specification before code.</li>
+      <li><b>Hard rule in CLAUDE.md.</b> "Run <code>pytest -q</code> after every edit; surface failures before continuing." Removes the commonest failure mode — claimed success without verification.</li>
+      <li><b>Test the dead end, not just the success.</b> Assert the failure mode (e.g. Tikhonov) so a well-meaning future fix can't silently re-enable the bug.</li>
+      <li><b>Cite tests in commits and decisions.</b> MEMORY.md decisions reference the test that catches their regression.</li>
     </ul>
     <pre><code># In CLAUDE.md
 ## Conventions
@@ -1265,36 +1085,14 @@ git log -p path/to/disputed.py   # are the same lines flipping back?</code></pre
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
-  <!-- 34. Capstone -->
-  <section class="slide section-divider">
-    <div class="kicker">Part 8 · Capstone</div>
-    <h1>Inverse Poisson with PETSc/TAO</h1>
-    <p class="lede" style="color: var(--accent-soft); max-width: 60ch;">An end-to-end PDE-constrained problem that uses the full four-file architecture (CLAUDE.md, plans/, MEMORY.md, STATUS.md), the KKT-checker skill, and the SQLite MCP — together.</p>
-    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- 35. Capstone details -->
-  <section class="slide">
-    <h3>Capstone <span class="badge">30 min</span></h3>
-    <h1>The capstone</h1>
-    <p>Identify the source term <code>f</code> in <code>−Δu = f</code> on the unit square from noisy measurements of <code>u</code> at sensor points. We solve the reduced-space optimization:</p>
-    <pre><code>min_f  ½ ‖S u(f) − u_obs‖² + α ‖f‖²
-       u(f) solves −Δu = f, u|∂Ω = 0,
-       and S is the sensor sampling operator.</code></pre>
-    <p>Stack: <b>petsc4py</b> for the PDE solve, <b>TAO</b> for the outer optimization, <b>numpy</b> for orchestration, our <b>kkt-checker</b> for verification, and the <b>SQLite MCP</b> to log runs.</p>
-    <p class="small">Folder: <code>exercises/06-capstone/</code>. CLAUDE.md, MEMORY.md, STATUS.md, and a worked plan in <code>plans/</code> all ship with it.</p>
-    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
   <!-- 36. Best practices -->
   <section class="slide">
     <h3>Wrap-up</h3>
-    <h1>Eight habits worth keeping</h1>
+    <h1>Seven habits worth keeping</h1>
     <ol>
       <li><b>Set up the four-file architecture early.</b> <code>CLAUDE.md</code> (conventions), <code>plans/</code> (forward), <code>MEMORY.md</code> (learned), <code>STATUS.md</code> (current). One job per file; don't conflate them.</li>
       <li><b>Plan before you build.</b> Plan mode for anything beyond a one-line edit. Save the plan to <code>plans/&lt;date&gt;-&lt;slug&gt;.md</code> before you implement.</li>
       <li><b>Promote recurring tasks to skills.</b> Anything you do twice — KKT check, perf profile, log parsing — becomes a SKILL.md.</li>
-      <li><b>Reach for MCPs at the seams.</b> Databases, custom solvers, GitHub. Don't wrap things you don't need.</li>
       <li><b>Commit before you prompt.</b> A clean working tree means every Claude change is visible in <code>git diff</code> and reversible in one command.</li>
       <li><b>Test both code and results.</b> Unit tests in <code>tests/</code> for correctness; experimental-regression tests in <code>bench/</code> for result quality. A CLAUDE.md rule that says "run pytest after every edit" removes the most common failure mode.</li>
       <li><b>End every session with the two-line ritual.</b> Append a dated entry to MEMORY.md if anything was decided; overwrite STATUS.md with the next concrete step. Two minutes.</li>
@@ -1308,10 +1106,9 @@ git log -p path/to/disputed.py   # are the same lines flipping back?</code></pre
     <h3>Resources</h3>
     <h1>Where to go from here</h1>
     <ul>
-      <li><b>Authoritative reference: <code>docs.claude.com/en/best-practices</code></b> — Anthropic's official Claude Code best-practices guide. Read it after this workshop; the workshop's four-file architecture and literature material are opinion-laden extensions of what this guide prescribes.</li>
+      <li><b>Authoritative reference: <code>docs.claude.com/en/best-practices</code></b> — Anthropic's official guide. Read it after this workshop; our four-file architecture and literature material are opinion-laden extensions of it.</li>
       <li>Documentation: <code>docs.claude.com/claude-code</code></li>
       <li>Source &amp; issues: <code>github.com/anthropics/claude-code</code></li>
-      <li>MCP spec and SDKs: <code>modelcontextprotocol.io</code></li>
       <li>Skills examples: the <code>.claude/skills/</code> in this workshop's exercises folder</li>
       <li>A power-user reference setup: <code>github.com/affaan-m/everything-claude-code</code> — heavy on software-engineering skills; useful as a layout example, not a starting point.</li>
       <li>Optimization-specific:
@@ -1324,6 +1121,12 @@ git log -p path/to/disputed.py   # are the same lines flipping back?</code></pre
       </li>
     </ul>
     <p class="small" style="margin-top: 12px;">Questions, or stories of what worked: keep notes in MEMORY.md. The next session will thank you.</p>
+    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
+  <!-- Capstone (final slide) -->
+  <section class="slide section-divider">
+    <h1>Capstone</h1>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 </div>

@@ -1,6 +1,6 @@
 # Exercise 3 — Use a skill to verify a KKT point (15 min)
 
-**Goal.** See how a custom skill encapsulates a recurring research task — here, KKT verification.
+**Goal.** See how a custom skill encapsulates a recurring research task — here, KKT verification. The check is the pretext; **the skill is the artifact**: a packaged check Claude finds and runs from a plain-language request, without you naming it.
 
 ## What ships
 
@@ -48,10 +48,10 @@ Specific data is in `problem.py`. The candidate KKT point in `solution.json` is 
 
    ```
    verify the candidate solution in solution.json against the QP
-   defined in problem.py using the kkt-checker skill.
+   defined in problem.py.
    ```
 
-   Claude should locate the skill (because the description matches the task), run `check_kkt.py`, and report residuals.
+   Notice the prompt does **not** name the skill — that's deliberate. The point of a skill is that Claude finds the right one by matching your request against the `description:` field in each `SKILL.md`. Claude should locate `kkt-checker`, run `check_kkt.py`, and report residuals. If it computes the check inline instead, push back: "use the kkt-checker skill in `.claude/skills/`" — the failure itself is informative, telling you the description was too weak to route on.
 
 3. Open `solution.json` and corrupt one component — for example, change `z[0]` from `0.0` to `0.5`. Save.
 
@@ -59,17 +59,15 @@ Specific data is in `problem.py`. The candidate KKT point in `solution.json` is 
 
 5. Restore the file.
 
-## Stretch
+## Critical-reading checklist
 
-Ask Claude (in plan mode):
-
-```
-extend the kkt-checker skill so it also reports the active set
-(indices where x_i = 0 and z_i > 0) and warns about strict
-complementarity violations.
-```
-
-Read the diff carefully before accepting. The `check_kkt.py` script and the SKILL.md should both change.
+| Look for | Why it matters |
+|----------|----------------|
+| Did Claude *run* `check_kkt.py`, or compute the KKT check inline? | The skill is the source of truth; an inline check is just a one-shot. |
+| Did it report residuals per KKT block (stationarity, feasibility, complementarity)? | Is this what you asked the skill for? |
+| On the corrupted file, did it localize *which* residual failed? | "It fails" without saying where makes you re-derive it. |
+| On the stretch, did it update *both* `check_kkt.py` and the `description:`? | A feature the description doesn't mention is invisible to routing. |
+| Did Claude trust the skill's verdict, or second-guess it? | A skill is the agreed-on check; overriding it defeats the point. |
 
 ## Discussion prompts
 
@@ -78,6 +76,6 @@ Read the diff carefully before accepting. The `check_kkt.py` script and the SKIL
 
 ## Stretch
 
+- In plan mode, ask Claude to extend the skill so it also reports the active set (indices where `x_i = 0` and `z_i > 0`) and warns about strict complementarity violations. Read the diff carefully before accepting — both `check_kkt.py` and `SKILL.md` should change.
 - Extend the kkt-checker skill to general nonlinear optimization problems.
-- What would you need, if only primal variables were given/avaibable?
-- Ask claude to generate a plan ... 
+- What would you need if only the primal variables `x` were available (no multipliers)?

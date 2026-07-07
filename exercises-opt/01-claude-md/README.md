@@ -1,4 +1,4 @@
-# Exercise 1 — Let /init write CLAUDE.md (10 min)
+# Exercise 1 — Let /init write CLAUDE.md (15 min)
 
 **Goal.** Experience how `/init` reads your source code and generates a
 CLAUDE.md that knows your variable names and conventions — without you
