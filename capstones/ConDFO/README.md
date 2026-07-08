@@ -12,7 +12,7 @@ Build a constrained derivative-free optimization solver
   - [libEnsemble: concurrent evaluation](https://libensemble.readthedocs.io/en/main/index.html)
     - [Optimization with APOSSM](https://libensemble.readthedocs.io/en/main/tutorials/aposmm_tutorial.html#)
     - [Optimization with XOPT](https://libensemble.readthedocs.io/en/main/tutorials/xopt_bayesian_gen.html)
-    - [git repo](https://github.com/Libensemble`) (library to coordinate the concurrent evaluation of dynamic ensembles of calculations)
+    - [libEnsemble git repo](https://github.com/Libensemble) (library to coordinate the concurrent evaluation of dynamic ensembles of calculations)
   - [XOPT Flexible Optimizer](https://xopt.xopt.org/)
 
 ## Problem Statement
