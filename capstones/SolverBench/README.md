@@ -22,6 +22,15 @@ else ships. The code is yours to write.
   This kind of paper lives or dies on its methodology and its archived,
   re-runnable results. See *Publication outlets* at the end.
 
+## Install
+
+This project runs in **Firedrake** inside its official Docker image. **Install
+Docker and pull the Firedrake image by following the PDE track's install guide:**
+[`../../exercises-pde/01-claude-md/INSTALL.md`](../../exercises-pde/01-claude-md/INSTALL.md).
+It walks through installing Docker and running the `firedrakeproject/firedrake`
+image with your working folder bind-mounted in. As in the PDE exercises, run
+`claude` on the host and run the Python *inside* the container.
+
 ## The research gap
 
 "Which solver should I use for this problem?" is usually answered by habit, a
@@ -295,8 +304,8 @@ applied for real). They are the two rules most likely to be violated silently:
 For fun, you can hand this list to `claude` and let it plan — or work it step by
 step.
 
-1. Write the project `CLAUDE.md` (conventions above) and an `INSTALL.md` note
-   for your Firedrake-in-Docker setup.
+1. Set up Docker + Firedrake (see *Install* above) and write the project
+   `CLAUDE.md` (conventions above).
 2. Plan the harness in plan mode; agree on the run-record schema before coding.
 3. Implement the harness + Poisson baseline; produce the mesh-independence plot.
 4. Record durable findings in `MEMORY.md` (which preconditioners ruled in/out,
