@@ -32,4 +32,4 @@ Develop a thread-safe `c++` implemenatation of `bqpd` and test it on the example
 10. What are copyright issues with code translated by `claude`?
 11. Will the new BQPD-CPP work with UNO (and reprduce thhe same resuklts)?
 
-FWIW, this is a project that Sven and others wilkl be working on anyway soon. 
+*Sven and others will be working on this project soon.* 
