@@ -2,15 +2,18 @@
 # Render slides/pages of an Office document to PNG images via LibreOffice + poppler.
 #
 # Usage:
-#   render.sh INPUT [--pages LIST] [--dpi N] [--out DIR]
+#   render.sh INPUT [--pages LIST] [--dpi N] [--out DIR] [--contact-sheet] [--cols N]
 #
-#   INPUT        .pptx .ppt .odp .docx .doc .odt .xlsx (anything LibreOffice opens)
-#   --pages LIST comma list and/or ranges, 1-based: "5", "5,16,34", "1-10", "1-3,20"
-#                (default: all pages)
-#   --dpi N      raster resolution (default: 150)
-#   --out DIR    output directory (default: a temp dir, path printed at the end)
+#   INPUT           .pptx .ppt .odp .docx .doc .odt .xlsx (anything LibreOffice opens)
+#   --pages LIST    comma list and/or ranges, 1-based: "5", "5,16,34", "1-10", "1-3,20"
+#                   (default: all pages)
+#   --dpi N         raster resolution (default: 150)
+#   --out DIR       output directory (default: a temp dir, path printed at the end)
+#   --contact-sheet tile the rendered pages into one contact-sheet.png (needs Pillow)
+#   --cols N        columns in the contact sheet (default: 5)
 #
-# Prints one PNG path per rendered page. Exit 3 if a dependency is missing.
+# Prints one PNG path per rendered page (or the contact-sheet path with
+# --contact-sheet). Exit 3 if a dependency is missing.
 set -euo pipefail
 
 die() { echo "render.sh: $*" >&2; exit 1; }
@@ -47,13 +50,15 @@ EOF
 fi
 
 # ---- args -----------------------------------------------------------------
-INPUT=""; PAGES=""; DPI=150; OUTDIR=""
+INPUT=""; PAGES=""; DPI=150; OUTDIR=""; CONTACT_SHEET=0; COLS=5
 while [ $# -gt 0 ]; do
   case "$1" in
     --pages) PAGES="$2"; shift 2 ;;
     --dpi)   DPI="$2"; shift 2 ;;
     --out)   OUTDIR="$2"; shift 2 ;;
-    -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
+    --cols)  COLS="$2"; shift 2 ;;
+    --contact-sheet) CONTACT_SHEET=1; shift ;;
+    -h|--help) sed -n '2,24p' "$0"; exit 0 ;;
     -*) die "unknown option: $1" ;;
     *) [ -z "$INPUT" ] && INPUT="$1" || die "unexpected argument: $1"; shift ;;
   esac
@@ -76,15 +81,18 @@ pdf="$work/$stem.pdf"
 
 npages="$(pdftoppm -png -r 10 "$pdf" "$work/probe" >/dev/null 2>&1; ls "$work"/probe-*.png 2>/dev/null | wc -l | tr -d ' ')"
 
+rendered=()
 emit() { # render a single 1-based page number
-  local p="$1"
+  local p="$1" f
   pdftoppm -png -r "$DPI" -f "$p" -l "$p" "$pdf" "$OUTDIR/$stem" >/dev/null 2>&1 || return 0
-  ls "$OUTDIR/$stem"-*"$p".png 2>/dev/null | tail -1
+  f="$(ls "$OUTDIR/$stem"-*"$p".png 2>/dev/null | tail -1)"
+  [ -n "$f" ] && rendered+=("$f")
 }
 
 if [ -z "$PAGES" ]; then
   pdftoppm -png -r "$DPI" "$pdf" "$OUTDIR/$stem" >/dev/null 2>&1
-  ls "$OUTDIR/$stem"-*.png 2>/dev/null | sort
+  while IFS= read -r f; do rendered+=("$f"); done \
+    < <(ls "$OUTDIR/$stem"-*.png 2>/dev/null | sort)
 else
   IFS=',' read -ra toks <<< "$PAGES"
   for tok in "${toks[@]}"; do
@@ -96,6 +104,18 @@ else
       emit "$tok"
     fi
   done
+fi
+
+if [ "$CONTACT_SHEET" = 1 ]; then
+  command -v python3 >/dev/null 2>&1 || die "python3 needed for --contact-sheet"
+  sheet="$OUTDIR/contact-sheet.png"
+  python3 "$(dirname "$0")/contact_sheet.py" \
+    --in "$OUTDIR" --out "$sheet" --cols "$COLS" \
+    --title "$base — ${#rendered[@]} slides" >/dev/null || exit $?
+  echo "$sheet"
+  echo "render.sh: contact sheet (${#rendered[@]} slides, ${COLS} cols) -> $sheet" >&2
+else
+  [ "${#rendered[@]}" -gt 0 ] && printf '%s\n' "${rendered[@]}"
 fi
 
 echo "render.sh: rendered from $base (${npages:-?} pages) -> $OUTDIR" >&2

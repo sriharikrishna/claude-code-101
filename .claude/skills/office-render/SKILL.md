@@ -52,8 +52,12 @@ bash .claude/skills/office-render/scripts/render.sh INPUT [--pages LIST] [--dpi 
   Omit to render **all** pages.
 - `--dpi N` — resolution (default `150`; use `200`+ for fine text, `100` for quick thumbnails).
 - `--out DIR` — output directory (default: a fresh temp dir; the path is printed to stderr).
+- `--contact-sheet` — tile the rendered pages into one numbered `contact-sheet.png` (a full-deck
+  overview / QA grid). Needs Pillow (`python3 -m pip install --user Pillow`). Stdout is the sheet path.
+- `--cols N` — columns in the contact sheet (default `5`).
 
-The script prints one PNG path per rendered page on stdout. Read those paths to view them.
+The script prints one PNG path per rendered page on stdout (or, with `--contact-sheet`, the single
+contact-sheet path). Read those paths to view them.
 
 ### Examples
 
@@ -64,6 +68,10 @@ bash .claude/skills/office-render/scripts/render.sh slides-argonne.pptx
 # Just a few slides, higher resolution, into /tmp/ql
 bash .claude/skills/office-render/scripts/render.sh slides-argonne.pptx \
   --pages 1,5,16,34,50 --dpi 200 --out /tmp/ql
+
+# One contact sheet of the whole deck (5 columns), for a full visual sweep
+bash .claude/skills/office-render/scripts/render.sh slides-argonne.pptx \
+  --contact-sheet --dpi 96 --out /tmp/contact
 ```
 
 Typical loop when verifying a generated deck:
