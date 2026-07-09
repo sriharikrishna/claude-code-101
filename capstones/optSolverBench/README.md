@@ -1,4 +1,4 @@
-# Capstone Project: Optimizer & Solver Benchmarking for PDE-Constrained Optimization
+# optSolverBench - Optimizer & Solver Benchmarking for PDE-Constrained Optimization
 
 ## Purpose
 
