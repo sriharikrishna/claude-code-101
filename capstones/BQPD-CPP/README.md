@@ -6,7 +6,7 @@ BQPD is a `fortran77` solver for quadratic programs of the form
 
 $$ \min_x g^T x + \frac{1}{2} x^T G x, ~~ AL \leq A^T x \leq AU, xL \leq z \leq xU $$
 
-where $g, xL, xU \in \R^n$ are constant vectorss, $A \in R^{n \times m}, G \in R^{n\times n}$ are matrices, and $AL, AU \in R^m$ are constant bound vectors.
+where $g, xL, xU \in R^n$ are constant vectorss, $A \in R^{n \times m}, G \in R^{n\times n}$ are matrices, and $AL, AU \in R^m$ are constant bound vectors.
 
 The solver uses `common` blocks to pass information, which means it is **not threat-safe**. Despite the fact that it is written in `fortran77`, the solver uses *object-oriented-like* ideas to allow any combinations of dense/sparse matrix representation/factorization (see `sparseA.f` and `denseA.f` for example).
 
