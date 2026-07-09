@@ -239,9 +239,8 @@ FIT_JS = r"""<script>
 
   // --- scale the whole canvas to fill the viewport ---
   function fitDeck() {
-    var full = !!document.fullscreenElement;
-    var margin = full ? 1 : 0.965;  // small breathing room when windowed
-    var k = Math.min(window.innerWidth / DES_W, window.innerHeight / DES_H) * margin;
+    // fill the viewport edge-to-edge (16:9 is preserved; the limiting axis wins)
+    var k = Math.min(window.innerWidth / DES_W, window.innerHeight / DES_H);
     deck.style.transform = 'scale(' + k + ')';
   }
   function fitAll() { fitDeck(); fitActive(); }
