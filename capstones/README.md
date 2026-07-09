@@ -7,5 +7,6 @@
 5. Create your `CLAUDE.md` and edit it.
 6. Start *clauding* ... divide tasks, make plans, ...
 7. Keep updating `MEMORY.md`, `plans/`, `CLAUDE.md` to maintain a shared memory across sessions?
+8. Beware of halucinated references; use Rob's [ref-checker](https://github.com/rbross-hpc/ref-checker)
 
 *Have fun, and share yoyur experience!*
