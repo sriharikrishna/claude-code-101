@@ -1,0 +1,20 @@
+### Compile & link the new QP solver
+
+# ... compiler
+FORTRAN = f77
+
+# ... compiler options
+LOPTIONS = -O
+COPTIONS = $(LOPTIONS) -c
+
+# ... object files
+OBJ = QPdrivers.o bqpd.o auxil.o sparseL.o sparseA.o util.o
+
+# ... compilation stage
+.SUFFIXES: .o .f
+.f.o:
+	$(FORTRAN) $(COPTIONS) $<
+
+# ... link and create executable
+xxx: $(OBJ)
+	$(FORTRAN) $(LOPTIONS) $(OBJ) -o xxx

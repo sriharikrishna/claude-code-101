@@ -1,0 +1,31 @@
+The following messages contain information and source code for the
+QP solver bqpd. The next message contains a compressed tar'ed
+file called bqpd.tar.Z. To install bqpd follow the instructions
+below (this applies to UNIX users only):
+
+   (1) Save the file bqpd.tar.Z from your mail tool.
+   (2) uncompress bqpd.tar.Z
+   (3) tar xf bqpd.tar
+
+This will unpack the bqpd solver into the current directory.
+It contains the following files:
+
+   (1) SQP_bqpd.tex, a LaTeX file of the bqpd manual.
+   (2) The Fortran 77 source code for bqpd.
+
+        auxil.f			bqpd.f   		denseA.f    
+	denseL.f    	    	sparseA.f    		sparseL.f    	    
+	util.f       
+
+	QPdrivers.f		QPdriverd.f
+
+   (3) A make file (make_qp) that compiles/links the sparse QP solver.
+   (4) An example sparse data file (avgas.s)
+
+To run the example QP problem
+
+   (1) Type "make -f make_qp" without the "".
+   (2) Type "xxx" to run avgas; type "avgas 6 1 1" at the prompt.
+   (3) Next you will be prompted for the Hessian matrix parameters.
+       In the example, the Hessian is a tridiagonal matrix with constant
+       diagonal and off-diagonal entries.  Type "4 -1" or "0 0" for LP.
