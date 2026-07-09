@@ -485,7 +485,7 @@
     <p class="lede">Everything Claude reads and writes in a session lives in one finite buffer — the <i>context window</i>.</p>
     <ul>
       <li>Every prompt, file read, and tool output goes into the same window.</li>
-      <li>Large but bounded — around 200K tokens (~150K words).</li>
+      <li>Large but bounded — the context window is model-specific.</li>
       <li style="color: #c0392b;">Near the limit, Claude Code <b>auto-compacts</b>: older messages are summarized to make room.</li>
       <li>Compaction is lossy — details from early turns can fade. Keep anything that matters on disk.</li>
     </ul>
