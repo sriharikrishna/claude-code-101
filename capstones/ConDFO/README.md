@@ -1,4 +1,4 @@
-# Capstone Project: ConDFO
+# ConDFO - Develop and build a derivative-free optimization solver with constraints
 
 ## Purpose
 
