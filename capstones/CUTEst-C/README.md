@@ -16,5 +16,5 @@ There are a number of possible extension or stretch goals:
 1. Develop a similar no-dependency Julia implementation (to replace the [CUTEst.jl package](https://github.com/JuliaSmoothOptimizers/CUTEst.jl) that simply calls the internal fortran binaries.
 2. Compare the *simplistic* AD of the SIF files (based on group-partial-separability) with modern AD tools using the C interface.
 
-*project proposed by Paul Hovland* 
+*Proposed by Paul Hovland* 
 
