@@ -485,7 +485,7 @@
     <p class="lede">Everything Claude reads and writes in a session lives in one finite buffer — the <i>context window</i>.</p>
     <ul>
       <li>Every prompt, file read, and tool output goes into the same window.</li>
-      <li>Large but bounded — around 200K tokens (~150K words).</li>
+      <li>Large but bounded — the context window is model-specific.</li>
       <li style="color: #c0392b;">Near the limit, Claude Code <b>auto-compacts</b>: older messages are summarized to make room.</li>
       <li>Compaction is lossy — details from early turns can fade. Keep anything that matters on disk.</li>
     </ul>
@@ -524,23 +524,6 @@ claude --resume
 /compact    # manually summarize older turns to free context space</code></pre>
     <p>Sessions are stored locally under <code>~/.claude/projects/&lt;hash&gt;/</code>. They're plain files; you can grep them.</p>
     <div class="callout"><b>Don't lean on <code>--resume</code> to remember decisions</b> — it's brittle. Persist anything that matters to files. We'll cover the end-of-session ritual with MEMORY.md and STATUS.md in Part 4.</div>
-    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
-  </section>
-
-  <!-- NEW: Claude Code vs Cowork -->
-  <section class="slide">
-    <h3>Session basics</h3>
-    <h1>Claude Code vs. Cowork — when to use which</h1>
-    <table class="matrix">
-      <tr><th></th><th>Claude Code</th><th>Cowork mode</th></tr>
-      <tr><td>Surface</td><td>Terminal CLI (also IDE plugins)</td><td>Desktop app feature</td></tr>
-      <tr><td>Centered on</td><td>A project folder of code/data</td><td>Cross-tool workflows on your computer</td></tr>
-      <tr><td>Reads / writes</td><td>Files, runs shell commands</td><td>Files + connectors (Slack, Gmail, Notion, Calendar)</td></tr>
-      <tr><td>Audience</td><td>Developers, researchers</td><td>Knowledge workers; non-developers</td></tr>
-      <tr><td>Strong fit</td><td>Solver code, experiments, paper LaTeX</td><td>Grant admin, email triage, document pipelines</td></tr>
-      <tr><td>Shared</td><td colspan="2">Same model family, plugins, skills, memory conventions</td></tr>
-    </table>
-    <p class="small" style="margin-top: 6px;">For the kind of computational research this workshop covers, Claude Code is the workhorse. Cowork is useful when the work crosses tools your terminal can't reach — drafting a referee reply that pulls from your Calendar, Gmail, and a Notion outline at once.</p>
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
