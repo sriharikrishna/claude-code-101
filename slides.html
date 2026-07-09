@@ -1169,6 +1169,24 @@ git log -p path/to/disputed.py   # are the same lines flipping back?</code></pre
     <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
   </section>
 
+  <!-- NEW: Mapping to native Claude Code -->
+  <section class="slide">
+    <h3>Reference</h3>
+    <h1>Files vs. built-ins: how this maps to Claude Code</h1>
+    <p class="lede" style="font-size: 20px;">Two of the four files are the official path; two deliberately turn <i>ephemeral</i> built-ins into durable, versioned files.</p>
+    <table class="matrix">
+      <tr><th>This deck</th><th>Claude Code natively</th></tr>
+      <tr><td><code>CLAUDE.md</code></td><td>The native memory file — hierarchy + <code>@import</code>. <b>Same thing.</b></td></tr>
+      <tr><td>Skills</td><td>Native, loaded on demand. <b>Same thing.</b></td></tr>
+      <tr><td><code>plans/</code></td><td>Plan mode is a permission mode — <b>ephemeral</b>, never written to disk. We persist it.</td></tr>
+      <tr><td><code>MEMORY.md</code></td><td>CLAUDE.md <i>is</i> the memory; we split durable facts into a file it points at. (Name clashes with Claude Code's own auto-memory <code>MEMORY.md</code>.)</td></tr>
+      <tr><td><code>STATUS.md</code></td><td><code>--resume</code> / checkpoints are <b>machine-local</b> — a committed file crosses machines, CI, and collaborators.</td></tr>
+    </table>
+    <div class="callout">Same diagnosis as the official guide — context degrades as it fills — but a different remedy: <b>write it to disk</b>. Strongest when work crosses sessions, machines, or people; redundant when it doesn't.</div>
+    <p class="small">Full comparison: <code>docs/native-claude-code-mapping.md</code>. Official guide: <code>docs.claude.com/en/best-practices</code>.</p>
+    <div class="footer"><span>Workshop · v1</span><div class="progress"><div></div></div><span class="counter"></span></div>
+  </section>
+
   <!-- 37. Resources -->
   <section class="slide">
     <h3>Resources</h3>
