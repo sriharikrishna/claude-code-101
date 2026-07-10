@@ -1,11 +1,10 @@
 # OptiUNO - search for an optimal optimization solver 
 
-UNO [Unifying Nonlinear Optimization](https://github.com/cvanaret/Uno) Uno breaks down these methods into a set of common building blocks that interact with one another, such as constraint reformulation, step computation, and globalization. These strategies can be combined at runtime in various ways, and there are at least 186 possible configurations, but only a small number of these have ever been tried. **Our goal is find an optimal configuration of UNO's strategies.**
+UNO, the [Unified Nonlinear Optimizer](https://github.com/cvanaret/Uno) breaks optimization methods into a set of common building blocks that interact with one another, such as constraint reformulation, step computation, and globalization. These strategies can be combined at runtime in various ways, and there are at least 186 possible configurations, but only a small number of these have ever been tried. **Our goal is find an optimal configuration of UNO's strategies.**
 
 ## Background
 
-UNO's goal is to provide a single executable that can be changed at run-time to be many Newton-like solvers: interior-point, SQP, with different globalization mechanisms (line-search vs. trust-region), and globalization strategies. No one has explored these different possibilities; instead, we have implemented existing methods as `presets`. It would be interesting to see whether there are combinations that had not been explored that work significantly better for certain classes of problems.
-
+UNO's goal is to provide a single executable that can be changed at run-time to be many Newton-like solvers: interior-point, SQP, with different globalization mechanisms (line-search vs. trust-region), and globalization strategies. No one has explored these different possibilities; instead, we have implemented existing methods as `presets`. It would be interesting to see whether there are combinations that had not been explored that work significantly better for certain classes of problems. 
 
 <p align="center">
    <img src="wheel.png" alt="Uno's wheel of strategies" width="40%" />
@@ -13,19 +12,23 @@ UNO's goal is to provide a single executable that can be changed at run-time to 
 
 UNO's Wheel of Strategies ... *How many are there?*
 
+### References
+* [Vanaret & Leyffer. Implementing a unified solver for nonlinearly constrained optimization. MPC (2026)](https://link.springer.com/article/10.1007/s12532-026-00310-9)
+* [Uno, a unified solver for nonlinearly constrained optimization](https://unosolver.readthedocs.io/en/latest/)
+
 ## Possible Project Outline
 
 1. Install [UNO](https://github.com/cvanaret/Uno) in your workspace *(not here :-)*
-2. Install [openEvolve](https://github.com/algorithmicsuperintelligence/openevolve) or **hot off the press** [Google's AplhaEvolve](https://cloud.google.com/blog/products/ai-machine-learning/alphaevolve-is-available-for-everyone).
+2. Install [openEvolve](https://github.com/algorithmicsuperintelligence/openevolve) or *hot off the press* [Google's AplhaEvolve](https://cloud.google.com/blog/products/ai-machine-learning/alphaevolve-is-available-for-everyone).
 3. Select a set of test problems, e.g. the Hock-Schittkowski set from [Bob Vanderbei](https://vanderbei.princeton.edu/ampl/nlmodels/index.html).
 4. Explore the `run-time-options` that UNO offers: *these are your optimization variables*.
 5. What is a good `performance metric`? Total CPU-time, variance in time, iterations ... *this is your objective*.
-6. Set up `openEvolve` to find the `run-time-options` that optimize your `performance metric`.
+6. Set up `openEvolve` or `alphaEvolve` to find the `run-time-options` that optimize your `performance metric`.
 7. If you have multiple performance metrics, how do you address this problem?
 8. Beware that some combinations of `run-time-options` do not work at all. How do you catch this?
 9. How do the optimal `run-time-options` depend on the problem class?
 
-**Risk Mitigation**: If `openEvolve` fails to *optimize* the `run-time-options`, then we could resort to some form of complete enumeration.
+**Risk Mitigation**: If `openEvolve` or `alphaEvolve` fail to *optimize* the `run-time-options`, then we could resort to some form of complete enumeration.
 
 
 ## Possible Research Product
