@@ -47,15 +47,11 @@ Runtime dependencies (also listed in `requirements.txt`):
 
 ### Setting up a conda environment
 
-A conda environment named `RASC` is the recommended setup:
+A conda environment named `optimization` is the recommended setup (*see Exercise 1 for the conda environment definition*):
 
 ```bash
-conda create -n RASC python=3.11 -y
-conda activate RASC
-pip install -r requirements.txt
+conda activate optimization
 ```
-
-After installation, all subsequent commands assume the env is active (`conda activate RASC`).
 
 ## Running FilterADMM
 
