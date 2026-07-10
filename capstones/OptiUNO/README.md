@@ -35,7 +35,7 @@ This is not a classical optimizaton paper, but still worth writing up. A possibl
 1. Methodology (describe the project outline from above).
 2. Findings, and interpretation. Are there gaps in the software design/methods?
 3. How does this experiment (with UNO) generalize to other solvers?
-4. Compare `openEvolve` to complete enumeration both in terms of time and optimal solution.
+4. Compare `openEvolve` to `alphaEvolve` to complete enumeration both in terms of time and optimal solution.
 5. Conclusions and outlook.
 
 *From an idea by Nick Gould, who asked Sven whether he had explored all configurations.*
