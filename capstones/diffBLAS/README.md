@@ -2,7 +2,7 @@
 
 ## Purpose
 
-To enable on-the-fly adaption of a library providing differentiated BLAS routine to be used in different automatic differntiation activity contexts.
+To enable on-the-fly adaptation of a library providing differentiated BLAS routines to be used in different automatic differentiation activity contexts.
 
 ## Background
 
