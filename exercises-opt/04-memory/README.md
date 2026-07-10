@@ -64,7 +64,6 @@ where the fixed-`ρ` baseline `admm.py` does not converge in 30 iterations.
 
 ```bash
 cd src/
-conda activate optimization
 python3 FilterADMM.py
 ```
 
