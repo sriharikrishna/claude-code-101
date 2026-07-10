@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-"""Build slides-argonne.html — the workshop deck restyled to the Argonne
-16x9 template (white base slide with the blue left bar, Arial, Argonne-blue
-titles, gold section eyebrows, DOE + Argonne logos).
+"""Build slides.html — the workshop deck on the Argonne 16x9 template
+(white base slide with the blue left bar, Arial, Argonne-blue titles, gold
+section eyebrows, DOE + Argonne logos, scale-to-fill + full-screen).
 
-It reuses the CONTENT and navigation JS of slides.html verbatim and only swaps
-the stylesheet + inlines the two Argonne logos (extracted from the template).
-Content stays in sync with slides.html / docs/slides/.
+The slide CONTENT + navigation JS live in archive/slides-classic.html (the
+original serif deck, kept as the build source). This script reuses that markup
+verbatim and only swaps the stylesheet, injects the presentation-scaling script,
+and inlines the two Argonne logos (extracted from the template). Edit content in
+archive/slides-classic.html, then rebuild.
 
 Usage:
-    python scripts/build_html.py [--template PATH] [--src slides.html] [--out slides-argonne.html]
+    python scripts/build_html.py [--template PATH] [--src SRC.html] [--out OUT.html]
+    # defaults: --src archive/slides-classic.html  --out slides.html
 """
 from __future__ import annotations
 
@@ -293,8 +296,8 @@ FIT_JS = r"""<script>
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--template", default=None)
-    ap.add_argument("--src", default=str(REPO / "slides.html"))
-    ap.add_argument("--out", default=str(REPO / "slides-argonne.html"))
+    ap.add_argument("--src", default=str(REPO / "archive" / "slides-classic.html"))
+    ap.add_argument("--out", default=str(REPO / "slides.html"))
     args = ap.parse_args()
 
     potx = Path(args.template) if args.template else find_template()
@@ -311,11 +314,6 @@ def main():
     css = argonne_css(doe, arg)
     html = re.sub(r"<style>.*?</style>", f"<style>{css}</style>", html, count=1, flags=re.S)
 
-    # retitle + drop the aspect-ratio hint comment; note the theme
-    html = html.replace(
-        "<title>Files, not chats — Claude Code for mathematicians</title>",
-        "<title>Files, not chats — Claude Code for mathematicians (Argonne theme)</title>",
-    )
     # document the full-screen key in the help overlay
     html = html.replace(
         "<tr><td>?</td><td>Show this help</td></tr>",
@@ -329,7 +327,7 @@ def main():
     html = html.replace("</body>", FIT_JS + "\n</body>", 1)
 
     Path(args.out).write_text(html, encoding="utf-8")
-    print(f"Wrote {args.out}  (Argonne-themed reskin of {Path(args.src).name})")
+    print(f"Wrote {args.out}  (Argonne theme, from {Path(args.src).name})")
 
 
 if __name__ == "__main__":
