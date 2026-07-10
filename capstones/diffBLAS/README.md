@@ -14,7 +14,7 @@ To enable on-the-fly adaptation of a library providing differentiated BLAS routi
 
 ## Problem Statement
 
-`diffblas` is a library that provides (algorithmically) differentiated BLAS routines from their reference implementation in [lapack](https://github.com/Reference-LAPACK/lapack) using the automatic differentiation tool [Tapenade](https://gitlab.inria.fr/tapenade/tapenade) in four modes: forward (`_d`), vector forward (`_dv`), reverse (`_b`), and vector reverse (`_bv`).
+`diffblas` is a library that provides (algorithmically) differentiated BLAS routines from their reference implementation in [LAPACK](https://github.com/Reference-LAPACK/lapack) using the automatic differentiation tool [Tapenade](https://gitlab.inria.fr/tapenade/tapenade) in four modes: forward (`_d`), vector forward (`_dv`), reverse (`_b`), and vector reverse (`_bv`).
 The compiled `libdiffblas` can be linked into applications that need derivatives of BLAS operations for optimization, sensitivity analysis etc.
 
 For a routine like `DGEMM` diffblas contains `DGEMM_D`. 
@@ -26,7 +26,7 @@ For a routine like `DGEMM` diffblas contains `DGEMM_D`.
 
 Here the variables `alpha`, `a`, `b`, `beta`, and `c` are considered to be active and have variables `alphad`, `ad`, `bd`, `betad`, and `cd` respectively associated with them to hold derivative values. 
 
-The problem is that `DGEMM_D` may be called from contexts where a proper subset of `alpha`, `a`, `b`, `beta` is not active and therefore the provided `DGEMM_D` is not appropriate for correctness and/or performance reasons.
+The problem is that `DGEMM_D` may be called from contexts where only a proper subset of these variables is active, and therefore the provided `DGEMM_D` is not appropriate for correctness and/or performance reasons.
 
 
 The charge is to generate an approach that can create versions of `DGEMM_D` as needed given an activity pattern.
@@ -34,7 +34,7 @@ The charge is to generate an approach that can create versions of `DGEMM_D` as n
 ## Suggested Approaches
 
 ### Approach 1: Preprocessor directives 
-A preprocessor macro that wraps each statement or declaration such as `_keep_if_active_(010010, stmt)`  which, based on preprocessor-defined activity variable at that moment, either evaluates just to stmt or to an empty line. Approach 1 does not require heavy compiler infrastructure. 
+A preprocessor macro that wraps each statement or declaration such as `_keep_if_active_(010010, stmt)` which, based on a preprocessor-defined activity variable at that moment, either evaluates just to `stmt` or to an empty line. Approach 1 does not require heavy compiler infrastructure.
 
 ### Approach 2: Type analysis of an abstract syntax tree
 Design a tool that parses the code (for `DGEMM_D`) into an intermediate representation and uses the provided activity descriptor to manage declarations and prune statements in the code. This approach assumes compiler infrastructure.
