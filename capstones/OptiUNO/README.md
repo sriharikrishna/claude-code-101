@@ -16,7 +16,7 @@ UNO's Wheel of Strategies ... *How many are there?*
 ## Possible Project Outline
 
 1. Install [UNO](https://github.com/cvanaret/Uno) in your workspace *(not here :-)*
-2. Install [openEvolve](https://github.com/algorithmicsuperintelligence/openevolve).
+2. Install [openEvolve](https://github.com/algorithmicsuperintelligence/openevolve) or **hot off the press** [Google's AplhaEvolve](https://cloud.google.com/blog/products/ai-machine-learning/alphaevolve-is-available-for-everyone).
 3. Select a set of test problems, e.g. the Hock-Schittkowski set from [Bob Vanderbei](https://vanderbei.princeton.edu/ampl/nlmodels/index.html).
 4. Explore the `run-time-options` that UNO offers: *these are your optimization variables*.
 5. What is a good `performance metric`? Total CPU-time, variance in time, iterations ... *this is your objective*.
